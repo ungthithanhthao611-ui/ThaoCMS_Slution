@@ -1,0 +1,39 @@
+﻿@model List<CMS.Data.Entities.User>
+
+@{
+    ViewData["Title"] = "Quản lý thành viên";
+}
+
+<h2 class="mt-4 mb-3">QUẢN LÝ THÀNH VIÊN</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên đăng nhập</th>
+            <th>Họ và tên</th>
+            <th>Quyền hạn</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td><strong>@item.Username</strong></td>
+                <td>@item.FullName</td>
+                <td>
+                    <span class="badge bg-info">
+                        @item.Role
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-warning btn-sm">Sửa</button>
+                    <button class="btn btn-danger btn-sm">Xóa</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

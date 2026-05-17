@@ -1,0 +1,28 @@
+﻿@model List<CMS.Data.Entities.CategoryProduct>
+
+@{
+    ViewData["Title"] = "Danh sách loại sản phẩm";
+}
+
+<h2 class="mt-4 mb-3">DANH SÁCH LOẠI SẢN PHẨM</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên loại</th>
+            <th>Mô tả</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+            </tr>
+        }
+    </tbody>
+</table>

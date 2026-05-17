@@ -1,0 +1,26 @@
+﻿@model List<CMS.Data.Entities.Product>
+
+<h2>Danh sách sản phẩm</h2>
+
+<table class="table table-bordered">
+    <tr>
+        <th>ID</th>
+        <th>Tên</th>
+        <th>Mô tả</th>
+        <th>Giá</th>
+        <th>Số lượng</th>
+        <th>Hình ảnh</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.Name</td>
+            <td>@item.Description</td>
+            <td>@item.Price</td>
+            <td>@item.StockQuantity</td>
+            <td>@item.ImageUrl</td>
+        </tr>
+    }
+</table>
