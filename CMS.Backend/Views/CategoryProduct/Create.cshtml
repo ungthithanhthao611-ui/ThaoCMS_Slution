@@ -1,0 +1,37 @@
+@model CMS.Data.Entities.CategoryProduct
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thêm loại sản phẩm mới";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-plus-circle"></i> THÊM LOẠI SẢN PHẨM MỚI</h5>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tên loại sản phẩm:</label>
+                    <input asp-for="Name" class="form-control form-control-lg" placeholder="Nhập tên loại sản phẩm (ví dụ: Điện tử, Điện thoại...)" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Mô tả chi tiết:</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả tóm tắt giới thiệu nhóm sản phẩm này..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <hr />
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle"></i> Lưu loại sản phẩm
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary px-4">
+                        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

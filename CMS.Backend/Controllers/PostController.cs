@@ -13,9 +13,12 @@ using System;
 using System.IO; // [BUỔI 4] Sử dụng thao tác với thư mục và file vật lý
 using System.Linq;
 
+using Microsoft.AspNetCore.Authorization; // [BUỔI 5]
+
 namespace CMS.Backend.Controllers
 {
     // Controller quản lý bài viết
+    [Authorize] // [BUỔI 5] Yêu cầu người dùng đăng nhập mới được truy cập các tính năng quản lý bài viết
     public class PostController : Controller
     {
         private readonly ApplicationDbContext _context;

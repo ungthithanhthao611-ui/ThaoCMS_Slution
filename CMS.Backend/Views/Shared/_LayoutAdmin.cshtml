@@ -20,25 +20,66 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar điều hướng bên trái - BUỔI 4 -->
-            <nav class="col-md-3 col-lg-2 sidebar p-0">
-                <div class="p-3 text-center border-bottom border-secondary">
-                    <h4 class="text-white">ThaoCMS Admin</h4>
+            <!-- Sidebar điều hướng bên trái - BUỔI 4 & 5 -->
+            <nav class="col-md-3 col-lg-2 sidebar p-0 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="p-3 text-center border-bottom border-secondary">
+                        <h4 class="text-white">ThaoCMS Admin</h4>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-controller="Home" asp-action="Index" class="@(currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-speedometer2"></i> Bảng điều khiển
+                        </a>
+                        <a asp-controller="Category" asp-action="Index" class="@(currentController.Equals("Category", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-grid"></i> Quản lý Danh mục
+                        </a>
+                        <a asp-controller="Post" asp-action="Index" class="@(currentController.Equals("Post", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-file-earmark-post"></i> Quản lý Bài viết
+                        </a>
+                        <a asp-controller="User" asp-action="Index" class="@(currentController.Equals("User", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-people"></i> Quản lý Thành viên
+                        </a>
+                        <!-- Các trang nghiệp vụ nâng cao bổ sung - BUỔI 4 & 5 -->
+                        <a asp-controller="CategoryProduct" asp-action="Index" class="@(currentController.Equals("CategoryProduct", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-tags"></i> Loại sản phẩm
+                        </a>
+                        <a asp-controller="Product" asp-action="Index" class="@(currentController.Equals("Product", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-box-seam"></i> Sản phẩm
+                        </a>
+                        <a asp-controller="Customer" asp-action="Index" class="@(currentController.Equals("Customer", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-person-vcard"></i> Khách hàng
+                        </a>
+                        <a asp-controller="Order" asp-action="Index" class="@(currentController.Equals("Order", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-receipt"></i> Đơn hàng
+                        </a>
+                        <a asp-controller="OrderDetail" asp-action="Index" class="@(currentController.Equals("OrderDetail", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-list-check"></i> Đơn hàng chi tiết
+                        </a>
+                    </div>
                 </div>
-                <div class="mt-3">
-                    <a asp-controller="Home" asp-action="Index" class="@(currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-                        <i class="bi bi-speedometer2"></i> Bảng điều khiển
-                    </a>
-                    <a asp-controller="Category" asp-action="Index" class="@(currentController.Equals("Category", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-                        <i class="bi bi-grid"></i> Quản lý Danh mục
-                    </a>
-                    <a asp-controller="Post" asp-action="Index" class="@(currentController.Equals("Post", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-                        <i class="bi bi-file-earmark-post"></i> Quản lý Bài viết
-                    </a>
-                    <a asp-controller="User" asp-action="Index" class="@(currentController.Equals("User", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-                        <i class="bi bi-people"></i> Quản lý Thành viên
-                    </a>
-                </div>
+
+                <!-- [BUỔI 5] Khối hiển thị thông tin tài khoản đang đăng nhập và nút Đăng xuất ở chân Sidebar -->
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="p-3 border-top border-secondary bg-dark">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                <i class="bi bi-person-circle fs-5"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem;" title="@User.FindFirst("FullName")?.Value">
+                                    @User.FindFirst("FullName")?.Value
+                                </div>
+                                <div class="text-muted" style="font-size: 0.8rem;">
+                                    <span class="badge bg-secondary text-light">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a class="btn btn-sm btn-outline-danger w-100 mt-2 d-flex align-items-center justify-content-center gap-1" asp-controller="Account" asp-action="Logout">
+                            <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                        </a>
+                    </div>
+                }
             </nav>
 
             <!-- Vùng nội dung chính bên phải - BUỔI 4 -->

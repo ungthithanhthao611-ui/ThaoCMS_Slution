@@ -14,9 +14,10 @@
         <thead class="table-dark">
             <tr>
                 <th style="width: 80px;">ID</th>
-                <th>Mã khách hàng (Customer ID)</th>
+                <th>Khách hàng</th>
                 <th>Ngày đặt hàng</th>
                 <th>Trạng thái đơn hàng</th>
+                <th style="width: 280px; text-align: center;">Thao tác</th>
             </tr>
         </thead>
 
@@ -25,25 +26,49 @@
             {
                 <tr>
                     <td><strong>@item.Id</strong></td>
-                    <td><span class="badge bg-light text-dark border">@item.CustomerId</span></td>
+                    <td>
+                        <div class="fw-bold text-dark">@(item.Customer?.FullName ?? "Khách hàng không tồn tại")</div>
+                        <small class="text-secondary d-block">Email: @(item.Customer?.Email ?? "N/A") | SĐT: @(item.Customer?.Phone ?? "N/A")</small>
+                    </td>
                     <td class="text-muted">@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
                     <td>
                         @if (item.Status == 2)
                         {
-                            <span class="badge bg-success">Đã xong</span>
+                            <span class="badge bg-success shadow-sm">Đã xong</span>
                         }
                         else if (item.Status == 1)
                         {
-                            <span class="badge bg-info text-dark">Đang giao</span>
+                            <span class="badge bg-info text-dark shadow-sm">Đang giao</span>
                         }
                         else if (item.Status == 0)
                         {
-                            <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                            <span class="badge bg-warning text-dark shadow-sm">Chờ duyệt</span>
                         }
                         else
                         {
-                            <span class="badge bg-secondary">Khác (@item.Status)</span>
+                            <span class="badge bg-secondary shadow-sm">Khác (@item.Status)</span>
                         }
+                    </td>
+                    <td class="text-center">
+                        <!-- Cập nhật trạng thái bằng Button Group tiện lợi -->
+                        <div class="btn-group btn-group-sm me-2 shadow-sm" role="group">
+                            <a href="@Url.Action("UpdateStatus", "Order", new { id = item.Id, status = 0 })" 
+                               class="btn btn-outline-warning text-dark @(item.Status == 0 ? "bg-warning text-dark fw-bold" : "")" 
+                               title="Chờ duyệt">Chờ</a>
+                            <a href="@Url.Action("UpdateStatus", "Order", new { id = item.Id, status = 1 })" 
+                               class="btn btn-outline-info text-dark @(item.Status == 1 ? "bg-info text-dark fw-bold" : "")" 
+                               title="Đang giao">Giao</a>
+                            <a href="@Url.Action("UpdateStatus", "Order", new { id = item.Id, status = 2 })" 
+                               class="btn btn-outline-success @(item.Status == 2 ? "bg-success text-white fw-bold" : "")" 
+                               title="Đã hoàn thành">Xong</a>
+                        </div>
+
+                        <!-- Nút xóa đơn hàng -->
+                        <a href="@Url.Action("Delete", "Order", new { id = item.Id })" 
+                           class="btn btn-sm btn-danger shadow-sm" 
+                           onclick="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này và các chi tiết liên quan không?');">
+                            <i class="bi bi-trash"></i> Xóa
+                        </a>
                     </td>
                 </tr>
             }

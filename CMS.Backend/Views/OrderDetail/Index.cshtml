@@ -14,8 +14,8 @@
         <thead class="table-dark">
             <tr>
                 <th style="width: 80px;">ID</th>
-                <th>Mã đơn hàng (Order ID)</th>
-                <th>Mã sản phẩm (Product ID)</th>
+                <th>Đơn hàng</th>
+                <th>Sản phẩm</th>
                 <th>Số lượng</th>
                 <th>Đơn giá</th>
                 <th>Thành tiền</th>
@@ -28,8 +28,28 @@
                 var total = item.Quantity * item.UnitPrice;
                 <tr>
                     <td><strong>@item.Id</strong></td>
-                    <td><span class="badge bg-light text-dark border">#@item.OrderId</span></td>
-                    <td><span class="badge bg-light text-secondary border">@item.ProductId</span></td>
+                    <td>
+                        <span class="badge bg-light text-dark border d-block mb-1" style="max-width: fit-content;">#@item.OrderId</span>
+                        <div class="small fw-bold text-dark" style="font-size: 0.85rem;" title="Tên khách hàng mua sản phẩm">
+                            <i class="bi bi-person text-secondary"></i> @(item.Order?.Customer?.FullName ?? "Không rõ")
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            @if (!string.IsNullOrEmpty(item.Product?.ImageUrl))
+                            {
+                                <img src="@item.Product.ImageUrl" alt="@item.Product.Name" class="rounded me-2 shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null; this.src='https://placehold.co/40x40/png?text=No+Image';" />
+                            }
+                            else
+                            {
+                                <img src="https://placehold.co/40x40/png?text=No+Image" alt="No Image" class="rounded me-2 shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" />
+                            }
+                            <div>
+                                <span class="fw-bold text-dark d-block text-wrap" style="max-width: 250px;">@(item.Product?.Name ?? "Sản phẩm đã bị xóa")</span>
+                                <small class="text-secondary d-block">Mã SP: @item.ProductId</small>
+                            </div>
+                        </div>
+                    </td>
                     <td class="fw-semibold">@item.Quantity</td>
                     <td class="text-muted">@item.UnitPrice.ToString("#,##0") VNĐ</td>
                     <td class="text-danger fw-bold">@total.ToString("#,##0") VNĐ</td>

@@ -24,7 +24,7 @@
                 <div class="card shadow-sm h-100">
                     <img src="@item.ImageUrl" class="card-img-top" alt="Thumbnail"
                          style="height:180px; object-fit:cover;"
-                         onerror="this.src='https://via.placeholder.com/400x180?text=No+Image'" />
+                         onerror="this.onerror=null; this.src='https://placehold.co/400x180?text=No+Image'" />
                     <div class="card-body">
                         <span class="badge bg-primary mb-2">@item.Category?.Name</span>
                         <h5 class="card-title">@item.Title</h5>

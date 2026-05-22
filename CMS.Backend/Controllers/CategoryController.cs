@@ -6,7 +6,9 @@ Mo ta: Thực hiện quản lý danh mục - CRUD đầy đủ
 using CMS.Data;
 using CMS.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization; // [BUỔI 5]
 
+[Authorize] // [BUỔI 5] Bắt buộc phải đăng nhập mới được truy cập các tính năng quản lý danh mục
 public class CategoryController : Controller
 {
     // Biến _context dùng để kết nối và tương tác với Database (thông qua Entity Framework Core)

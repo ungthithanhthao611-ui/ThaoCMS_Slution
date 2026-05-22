@@ -9,9 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
+using Microsoft.AspNetCore.Authorization; // [BUỔI 5]
+
 namespace CMS.Backend.Controllers
 {
     // Controller quản lý người dùng / thành viên hệ thống
+    [Authorize(Roles = "Admin")] // [BUỔI 5] Chỉ tài khoản có vai trò là "Admin" mới được phép quản lý thành viên
     public class UserController : Controller
     {
         private readonly ApplicationDbContext _context;

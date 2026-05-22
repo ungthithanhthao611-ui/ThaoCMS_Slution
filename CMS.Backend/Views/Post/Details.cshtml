@@ -18,7 +18,7 @@
     <div class="card shadow-sm">
         <img src="@Model.ImageUrl" class="card-img-top"
              style="max-height:350px; object-fit:cover;"
-             onerror="this.src='https://via.placeholder.com/800x350?text=No+Image'"
+             onerror="this.onerror=null; this.src='https://placehold.co/800x350?text=No+Image'"
              alt="Ảnh bài viết" />
         <div class="card-body">
             @* [BUỔI 3 - YÊU CẦU 1] Hiển thị tên danh mục nhờ liên kết bảng .Include() *@
