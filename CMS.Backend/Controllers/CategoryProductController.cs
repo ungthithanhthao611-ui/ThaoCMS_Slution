@@ -1,4 +1,8 @@
-﻿using CMS.Data;
+﻿/*Sinh vien:Ung Thị Thanh Thảo 
+Ma sv:2123110174
+Lop:CCQ2311E
+*/
+using CMS.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 

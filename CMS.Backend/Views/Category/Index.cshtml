@@ -1,23 +1,47 @@
-﻿@model List<CMS.Data.Entities.Category>
+@* Lệnh '@model' ở đầu file này khai báo kiểu dữ liệu mà View này nhận được từ Controller. 
+   Trong trường hợp này là một Danh sách (List) các đối tượng Category. *@
+@model List<CMS.Data.Entities.Category>
 
-<h2>Danh sách danh mục</h2>
+@{
+    // ViewData["Title"] dùng để truyền tiêu đề trang lên Layout chung (Layout.cshtml)
+    ViewData["Title"] = "Danh sách danh mục";
+}
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Tên danh mục</th>
-            <th>Mô tả</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary fw-bold">DANH SÁCH DANH MỤC</h2>
+        @* Thẻ <a> sử dụng thuộc tính (Tag Helper) 'asp-action="Create"' để tạo link trỏ tới hàm Create trong CategoryController *@
+        <a asp-action="Create" class="btn btn-success">
+            + Thêm danh mục mới
+        </a>
+    </div>
+    <hr />
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
             <tr>
-                <td>@item.Id</td>
-                <td>@item.Name</td>
-                <td>@item.Description</td>
+                <th>Id</th>
+                <th>Tên danh mục</th>
+                <th>Mô tả</th>
+                <th style="width:180px;">Thao tác</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @* Dùng vòng lặp foreach (C#) duyệt qua biến 'Model' (chính là List<Category> đã truyền từ Controller sang) *@
+            @foreach (var item in Model)
+            {
+                <tr>
+                    @* In ra Id, Name và Description của từng đối tượng item *@
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>
+                        @* Tạo link sang trang Edit/Delete, đồng thời gắn thêm tham số ID vào URL (ví dụ: /Category/Edit/5) bằng 'asp-route-id' *@
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Sửa</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,36 @@
+@* Khai báo kiểu dữ liệu cho Model. Ở đây là một đối tượng Category duy nhất *@
+@model CMS.Data.Entities.Category
+
+@{
+    ViewData["Title"] = "Xác nhận xóa danh mục";
+}
+
+<div class="container mt-4">
+    <h2 class="text-danger">XÁC NHẬN XÓA DANH MỤC</h2>
+    <hr />
+
+    <div class="alert alert-warning">
+        <strong>⚠️ Bạn có chắc chắn muốn xóa danh mục này không?</strong>
+    </div>
+
+    @* Hiển thị thông tin chi tiết của danh mục để người dùng xác nhận lại trước khi xóa *@
+    <dl class="row">
+        <dt class="col-sm-3">Id:</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
+
+        <dt class="col-sm-3">Tên danh mục:</dt>
+        <dd class="col-sm-9">@Model.Name</dd>
+
+        <dt class="col-sm-3">Mô tả:</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+    </dl>
+
+    @* Form gửi yêu cầu POST đến hàm Delete(int id) (tên gốc là DeleteConfirmed) *@
+    <form asp-action="Delete" method="post">
+        @* Thẻ input type="hidden" để lưu trữ Id của danh mục. 
+           Người dùng không nhìn thấy trường này, nhưng khi submit form, Id sẽ được gửi kèm về Controller để biết xóa dòng nào *@
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Xác nhận Xóa</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+    </form>
+</div>
