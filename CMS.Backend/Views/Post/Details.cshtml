@@ -1,6 +1,8 @@
 @model CMS.Data.Entities.Post
 
 @{
+    // [BUỔI 4] Cài đặt sử dụng Layout quản trị chung
+    Layout = "_LayoutAdmin";
     ViewData["Title"] = "Chi tiết bài viết";
 }
 
@@ -19,7 +21,7 @@
              onerror="this.src='https://via.placeholder.com/800x350?text=No+Image'"
              alt="Ảnh bài viết" />
         <div class="card-body">
-            @* YÊU CẦU 1: Hiển thị tên danh mục bằng .Include() *@
+            @* [BUỔI 3 - YÊU CẦU 1] Hiển thị tên danh mục nhờ liên kết bảng .Include() *@
             <span class="badge bg-primary fs-6 mb-3">📂 Danh mục: @Model.Category?.Name</span>
 
             <h2 class="card-title fw-bold">@Model.Title</h2>
@@ -28,8 +30,9 @@
 
             <hr />
 
+            <!-- [BUỔI 4] Sử dụng Html.Raw() để hiển thị đúng định dạng HTML từ trình soạn thảo CKEditor -->
             <div class="card-text" style="line-height:1.8; font-size:1.05rem;">
-                @Model.Content
+                @Html.Raw(Model.Content)
             </div>
         </div>
         <div class="card-footer">

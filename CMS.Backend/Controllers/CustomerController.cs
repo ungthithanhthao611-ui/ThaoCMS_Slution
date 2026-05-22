@@ -1,17 +1,23 @@
-﻿/*Sinh vien:Ung Thị Thanh Thảo 
- Ma sv:2123110174
-Lop:CCQ2311E
-Mo ta: thuc hien quan ly danh mục sản phẩm 
-*/
+using CMS.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace CMS.Backend.Controllers
-{   //Controller quản lý danh mục sản phẩm
+{
+    // Controller quản lý Khách hàng - BUỔI 4
     public class CustomerController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public CustomerController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Index()
         {
-            return View();
+            var customers = _context.Customers.ToList();
+            return View(customers);
         }
     }
 }
