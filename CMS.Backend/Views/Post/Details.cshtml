@@ -1,0 +1,42 @@
+@model CMS.Data.Entities.Post
+
+@{
+    // [BUỔI 4] Cài đặt sử dụng Layout quản trị chung
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Chi tiết bài viết";
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Post" asp-action="Index">Bài viết</a></li>
+            <li class="breadcrumb-item active">Chi tiết</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+        <img src="@Model.ImageUrl" class="card-img-top"
+             style="max-height:350px; object-fit:cover;"
+             onerror="this.onerror=null; this.src='https://placehold.co/800x350?text=No+Image'"
+             alt="Ảnh bài viết" />
+        <div class="card-body">
+            @* [BUỔI 3 - YÊU CẦU 1] Hiển thị tên danh mục nhờ liên kết bảng .Include() *@
+            <span class="badge bg-primary fs-6 mb-3">📂 Danh mục: @Model.Category?.Name</span>
+
+            <h2 class="card-title fw-bold">@Model.Title</h2>
+
+            <p class="text-muted small">📅 Ngày đăng: @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</p>
+
+            <hr />
+
+            <!-- [BUỔI 4] Sử dụng Html.Raw() để hiển thị đúng định dạng HTML từ trình soạn thảo CKEditor -->
+            <div class="card-text" style="line-height:1.8; font-size:1.05rem;">
+                @Html.Raw(Model.Content)
+            </div>
+        </div>
+        <div class="card-footer">
+            <a asp-action="Index" class="btn btn-outline-secondary">← Quay lại danh sách</a>
+        </div>
+    </div>
+</div>

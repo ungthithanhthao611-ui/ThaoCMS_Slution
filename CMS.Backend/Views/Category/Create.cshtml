@@ -1,0 +1,29 @@
+@* Khai báo kiểu dữ liệu cho Model. Ở đây là một đối tượng Category duy nhất *@
+@model CMS.Data.Entities.Category
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thêm danh mục mới";
+}
+
+<div class="container mt-4">
+    <h2 class="text-success">THÊM DANH MỤC MỚI</h2>
+    <hr />
+    @* Thẻ form sử dụng Tag Helper 'asp-action="Create"' để gửi dữ liệu (POST) về hàm Create(Category model) trong Controller *@
+    <form asp-action="Create" method="post">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tên danh mục:</label>
+            @* 'asp-for="Name"' tự động liên kết thẻ input này với thuộc tính Name của Model. 
+               Nó sẽ tạo ra cả name="Name" và id="Name" trong HTML *@
+            <input asp-for="Name" class="form-control" placeholder="Nhập tên danh mục..." />
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Mô tả:</label>
+            @* Tương tự, liên kết textarea với thuộc tính Description *@
+            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả..."></textarea>
+        </div>
+        @* Nút type="submit" sẽ kích hoạt hành động gửi form (submit) *@
+        <button type="submit" class="btn btn-success">Lưu danh mục</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+    </form>
+</div>

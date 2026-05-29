@@ -1,26 +1,81 @@
-﻿@model List<CMS.Data.Entities.Product>
+@model List<CMS.Data.Entities.Product>
 
-<h2>Danh sách sản phẩm</h2>
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
 
-<table class="table table-bordered">
-    <tr>
-        <th>ID</th>
-        <th>Tên</th>
-        <th>Mô tả</th>
-        <th>Giá</th>
-        <th>Số lượng</th>
-        <th>Hình ảnh</th>
-    </tr>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-dark fw-bold">DANH SÁCH SẢN PHẨM</h2>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Thêm sản phẩm
+        </a>
+    </div>
 
-    @foreach (var item in Model)
+    <table class="table table-bordered table-striped table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th style="width: 80px;">ID</th>
+                <th>Hình ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Loại sản phẩm</th>
+                <th>Mô tả</th>
+                <th>Giá bán</th>
+                <th>Số lượng kho</th>
+                <th style="width: 180px;" class="text-center">Hành động</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><strong>@item.Id</strong></td>
+                    <td class="text-center" style="width: 120px;">
+                        <img src="@item.ImageUrl" alt="@item.Name" class="img-thumbnail" style="max-height: 60px; max-width: 100px; object-fit: cover;" onerror="this.onerror=null; this.src='https://placehold.co/100x60?text=No+Image'" />
+                    </td>
+                    <td class="text-primary fw-semibold">@item.Name</td>
+                    <td>
+                        @if (item.CategoryProduct != null)
+                        {
+                            <span class="badge bg-info text-dark">@item.CategoryProduct.Name</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Không xác định</span>
+                        }
+                    </td>
+                    <td class="text-muted">@item.Description</td>
+                    <td class="text-danger fw-bold">@item.Price.ToString("#,##0") VNĐ</td>
+                    <td>
+                        @if (item.StockQuantity <= 5)
+                        {
+                            <span class="badge bg-warning text-dark">Chỉ còn @item.StockQuantity</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">@item.StockQuantity</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
+                            <i class="bi bi-trash"></i> Xóa
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
     {
-        <tr>
-            <td>@item.Id</td>
-            <td>@item.Name</td>
-            <td>@item.Description</td>
-            <td>@item.Price</td>
-            <td>@item.StockQuantity</td>
-            <td>@item.ImageUrl</td>
-        </tr>
+        <div class="text-center text-muted my-5">
+            <i class="bi bi-box display-3"></i>
+            <p class="mt-3">Hệ thống chưa có sản phẩm nào.</p>
+        </div>
     }
-</table>
+</div>

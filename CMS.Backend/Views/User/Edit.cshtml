@@ -1,0 +1,62 @@
+@model CMS.Data.Entities.User
+@{
+    // [BUỔI 4] Cài đặt sử dụng Layout quản trị chung
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Cập nhật thành viên";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark d-flex align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square"></i> CẬP NHẬT THÔNG TIN THÀNH VIÊN</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <!-- BẮT BUỘC phải có Hidden Input chứa Id của tài khoản để biết dòng nào cần cập nhật -->
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="row mb-3">
+                    <!-- Ô hiển thị Tên đăng nhập (Chỉ đọc - readonly) -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tên đăng nhập:</label>
+                        <input asp-for="Username" class="form-control" readonly />
+                        <small class="text-muted">Tên đăng nhập là duy nhất và không được phép thay đổi.</small>
+                    </div>
+                    
+                    <!-- Ô nhập Mật khẩu mới (Tên trường là 'NewPassword' trùng với tham số của Action Edit ở Controller) -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Mật khẩu mới:</label>
+                        <input type="password" name="NewPassword" class="form-control" placeholder="Để trống nếu muốn giữ nguyên mật khẩu cũ" />
+                        <small class="text-info font-monospace">Nếu không muốn đổi mật khẩu, hãy để trống ô này.</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <!-- Ô nhập Họ và Tên -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Họ và Tên:</label>
+                        <input asp-for="FullName" class="form-control" required />
+                    </div>
+                    
+                    <!-- Dropdown chọn vai trò để thay đổi phân quyền -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Vai trò:</label>
+                        <select asp-for="Role" class="form-select" required>
+                            <option value="Admin">Quản trị viên (Admin)</option>
+                            <option value="Editor">Biên tập viên (Editor)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-2 border-top">
+                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="bi bi-check-circle"></i> Cập nhật
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary px-4 ms-2">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

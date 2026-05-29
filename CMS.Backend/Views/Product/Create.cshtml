@@ -1,0 +1,80 @@
+@model CMS.Data.Entities.Product
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thêm sản phẩm mới";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam"></i> THÊM SẢN PHẨM MỚI</h5>
+        </div>
+        <div class="card-body p-4">
+            <!-- enctype="multipart/form-data" là bắt buộc để tải file lên từ form -->
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Cột bên trái: Các thông tin mô tả cơ bản của sản phẩm -->
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên sản phẩm:</label>
+                            <input asp-for="Name" class="form-control form-control-lg" placeholder="Nhập tên sản phẩm..." required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả chi tiết:</label>
+                            <textarea asp-for="Description" class="form-control" rows="8" placeholder="Nhập thông tin giới thiệu chi tiết về sản phẩm..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Cột bên phải: Giá, Số lượng, Loại sản phẩm và Ảnh đại diện -->
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Loại sản phẩm:</label>
+                            <select asp-for="CategoryProductId" class="form-select" asp-items="ViewBag.CategoryList" required>
+                                <option value="">-- Chọn loại sản phẩm --</option>
+                            </select>
+                            <span asp-validation-for="CategoryProductId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Giá bán (VNĐ):</label>
+                            <input asp-for="Price" type="number" step="1000" class="form-control" placeholder="Ví dụ: 15000000" required />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số lượng kho:</label>
+                            <input asp-for="StockQuantity" type="number" class="form-control" placeholder="Ví dụ: 10" required />
+                            <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tải ảnh đại diện sản phẩm:</label>
+                            <input type="file" name="uploadImage" class="form-control" accept="image/*" />
+                            <small class="text-muted">Chọn tệp hình ảnh từ máy tính của bạn.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hoặc nhập link hình ảnh (URL):</label>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="https://..." />
+                            <small class="text-muted">Nếu không tải ảnh lên, bạn có thể dán liên kết URL ảnh trực tiếp vào đây.</small>
+                        </div>
+
+                        <hr />
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Lưu sản phẩm
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
