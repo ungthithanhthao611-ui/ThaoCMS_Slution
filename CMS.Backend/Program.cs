@@ -15,13 +15,13 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(); // -- Kích hoạt bộ sinh tài liệu API Swagger
 
-// [BUỔI 6] Giai đoạn 1: Đăng ký chính sách CORS
+// [BUỔI 7] Giai đoạn 1: Đăng ký chính sách CORS
 builder.Services.AddCors(options => {
-    options.AddPolicy("AllowAll", policy => {
-        // Cho phép mọi nguồn cấp (Origin), mọi phương thức gọi (GET, POST...), và mọi thông tin đi kèm (Header)
-        policy.AllowAnyOrigin() 
-              .AllowAnyMethod() 
-              .AllowAnyHeader(); 
+    options.AddPolicy("AllowReactApp", policy => {
+        policy.WithOrigins("http://localhost:3000") // Cho phép ReactJS ở port 3000 gọi tới
+              .AllowAnyHeader()                     // Cho phép mọi loại Header (Content-Type, Authorization...)
+              .AllowAnyMethod()                     // Cho phép mọi phương thức HTTP (GET, POST, PUT, DELETE)
+              .AllowCredentials();                  // Hỗ trợ truyền Cookie/Session nếu cần sau này
     });
 });
 
@@ -71,8 +71,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// [BUỔI 6] Giai đoạn 2: Kích hoạt chính sách (Middleware) CORS
-app.UseCors("AllowAll");
+// [BUỔI 7] Giai đoạn 2: Kích hoạt chính sách (Middleware) CORS
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication(); // [BUỔI 5] Kiểm tra xem "Bạn là ai?" (Xác thực danh tính)
 app.UseAuthorization();  // [BUỔI 5] Kiểm tra xem "Bạn có quyền gì?" (Xác thực quyền hạn)
