@@ -11,6 +11,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// [BUỔI 6] Đăng ký dịch vụ lõi giúp hệ thống tự động bóc tách thông tin Endpoint phục vụ Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(); // -- Kích hoạt bộ sinh tài liệu API Swagger
+
+// [BUỔI 7] Giai đoạn 1: Đăng ký chính sách CORS
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowReactApp", policy => {
+        policy.WithOrigins("http://localhost:3000") // Cho phép ReactJS ở port 3000 gọi tới
+              .AllowAnyHeader()                     // Cho phép mọi loại Header (Content-Type, Authorization...)
+              .AllowAnyMethod()                     // Cho phép mọi phương thức HTTP (GET, POST, PUT, DELETE)
+              .AllowCredentials();                  // Hỗ trợ truyền Cookie/Session nếu cần sau này
+    });
+});
+
 // [BUỔI 5] Đăng ký dịch vụ xác thực Cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -20,6 +34,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 var app = builder.Build();
+
+// [BUỔI 6] KHU VỰC CẤU HÌNH MIDDLEWARE (REQUEST PIPELINE) cho Swagger
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ThaiCMS Web API v1");
+    c.RoutePrefix = "swagger"; // -- Đường dẫn truy cập mặc định sẽ là /swagger
+});
 
 // [BUỔI 5] Tự động khởi tạo dữ liệu mẫu (Seed Data) cho tất cả các bảng
 using (var scope = app.Services.CreateScope())
@@ -49,8 +71,15 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// [BUỔI 7] Giai đoạn 2: Kích hoạt chính sách (Middleware) CORS
+app.UseCors("AllowReactApp");
+
 app.UseAuthentication(); // [BUỔI 5] Kiểm tra xem "Bạn là ai?" (Xác thực danh tính)
 app.UseAuthorization();  // [BUỔI 5] Kiểm tra xem "Bạn có quyền gì?" (Xác thực quyền hạn)
+
+// [BUỔI 6] KHU VỰC ĐỊNH TUYẾN PHÂN LUỒNG (ROUTING MAP)
+// Ánh xạ các Endpoint API tuân thủ theo cấu trúc [Route("api/[controller]")]
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",

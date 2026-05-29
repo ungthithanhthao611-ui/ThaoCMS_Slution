@@ -1,0 +1,467 @@
+:root {
+  --hc-red: #b22830;
+  --hc-red-hover: #911e25;
+  --hc-dark: #333333;
+  --hc-light: #f5f5f5;
+  --hc-gold: #c7a17a;
+  --hc-gold-hover: #b08d66;
+  --text-main: #333333;
+  --surface: #ffffff;
+}
+
+body {
+  font-family: 'Outfit', 'Arial', sans-serif !important;
+  background-color: var(--hc-light) !important;
+  color: var(--text-main) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Navbar */
+.hc-navbar {
+  background-color: var(--surface);
+  border-bottom: 2px solid var(--hc-red);
+  padding: 10px 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.hc-logo {
+  color: var(--hc-red);
+  font-weight: 800;
+  font-size: 1.8rem;
+  letter-spacing: -1px;
+  text-decoration: none !important;
+}
+
+.hc-nav-link {
+  color: var(--text-main);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0 15px;
+  transition: all 0.3s ease;
+  text-decoration: none !important;
+  font-size: 0.95rem;
+}
+
+.hc-nav-link:hover, .hc-nav-link.active {
+  color: var(--hc-red);
+}
+
+/* Banner */
+.hc-banner {
+  background: url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hc-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.hc-banner-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: white;
+}
+
+/* Section Title */
+.hc-section-title {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--hc-dark);
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.hc-section-title::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: var(--hc-red);
+  margin: 15px auto 0;
+}
+
+/* Tabs / Category Menu */
+.hc-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.hc-tab-btn {
+  background-color: transparent;
+  border: 2px solid var(--hc-dark);
+  color: var(--hc-dark);
+  padding: 8px 24px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.hc-tab-btn:hover, .hc-tab-btn.active {
+  background-color: var(--hc-red);
+  border-color: var(--hc-red);
+  color: white;
+}
+
+/* Bỏ viền (outline/border) khi click/focus vào các thẻ link, đặc biệt là logo trên header */
+#vnt-header *:focus,
+#vnt-header *:active,
+.tplogohead a:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Xoá cục nền đỏ và viền đen khi hover menu THỰC ĐƠN, chỉ đổi màu chữ vàng */
+.tpmenuhead ul li.current > a,
+.tpmenuhead ul li.active > a,
+.tpmenuhead ul li:hover > a,
+.tpmenuhead ul li a:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #e5a365 !important;
+}
+
+/* Product Card */
+.hc-card {
+  background: var(--surface);
+  border-radius: 8px;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  height: 100%;
+  overflow: hidden;
+}
+
+.hc-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.hc-card-img-container {
+  height: 250px;
+  background: #ebebeb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hc-card-img-container i {
+  font-size: 5rem;
+  color: #ccc;
+}
+
+.hc-price {
+  color: var(--hc-red);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.hc-btn-primary {
+  background-color: var(--hc-red);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  transition: background-color 0.3s ease;
+}
+
+.hc-btn-primary:hover {
+    background-color: #8c1e24;
+    color: #fff;
+}
+
+/* ==============================================================
+   FIX GIAO DIỆN CATEGORY (THỰC ĐƠN) BỊ VỠ DO THIẾU PRODUCT.CSS
+   ============================================================== */
+.block-category .menu {
+    position: relative;
+    width: 100%;
+    min-height: 450px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: visible;
+    margin-bottom: 10px;
+    z-index: 10;
+}
+
+.block-category .menu .imgWrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.block-category .menu .imgWrap .wrapper {
+    height: 100%;
+    position: relative;
+}
+
+.block-category .menu .imgCat {
+    position: absolute;
+    bottom: -100px;
+    right: 0;
+    width: 50%;
+    text-align: center;
+    z-index: 15;
+}
+
+.block-category .menu .imgCat img {
+    width: 100%;
+    height: auto;
+    max-width: 110%;
+    margin-top: -120px;
+    margin-bottom: -50px;
+    object-fit: contain;
+}
+
+.block-category .menu > .wrapper {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    min-height: 500px;
+}
+
+.block-category .menu .caption {
+    width: 50%;
+    padding-right: 50px;
+}
+
+.block-category .menu:nth-child(even) .imgCat {
+    right: auto;
+    left: 0;
+}
+
+.block-category .menu:nth-child(even) .caption {
+    margin-left: 50%;
+    padding-right: 0;
+    padding-left: 50px;
+}
+
+.block-category .menu .tend h3 {
+    font-size: 50px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 25px;
+    font-family: inherit;
+    letter-spacing: 2px;
+}
+
+.block-category .menu .tend h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.block-category .menu .des {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    font-weight: 500;
+}
+
+.block-category .menu .link a {
+    display: inline-block;
+    padding: 12px 45px;
+    border: 1px solid currentColor;
+    color: inherit;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+}
+
+.block-category .menu .link a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ==============================================================
+   MEGA MENU THỰC ĐƠN
+   ============================================================== */
+.vntheader {
+    position: relative;
+}
+
+.mega-menu-fullwidth {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #4a3424;
+    z-index: 999;
+    padding: 30px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-top: 3px solid #b22830;
+    animation: fadeInMenu 0.2s ease-out;
+}
+
+@keyframes fadeInMenu {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mega-menu-fullwidth .row-menu {
+    display: flex;
+    justify-content: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.mega-menu-fullwidth .col-menu {
+    flex: 1;
+    padding: 0 15px;
+}
+
+.mega-menu-fullwidth .col-menu h4 {
+    margin-bottom: 15px;
+}
+
+.mega-menu-fullwidth .col-menu h4 a {
+    color: #e5a365 !important;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.mega-menu-fullwidth .col-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: block !important;
+}
+
+.mega-menu-fullwidth .col-menu ul li {
+    margin-bottom: 10px;
+    display: block !important;
+}
+
+.mega-menu-fullwidth .col-menu ul li a {
+    color: #fff !important;
+    text-decoration: none;
+    font-size: 14px;
+    text-transform: none;
+    display: block;
+}
+
+.mega-menu-fullwidth .col-menu ul li a:hover {
+    color: #e5a365 !important;
+}
+
+/* ==============================================================
+   SCROLL ANIMATIONS (INTERSECTION OBSERVER)
+   ============================================================== */
+.lazyloading {
+    opacity: 0;
+}
+
+.lazyloading.animated {
+    animation-fill-mode: forwards;
+}
+
+.lazyloading.fadeIn {
+    animation-name: fadeInEff;
+    animation-duration: 1s;
+}
+
+.lazyloading.fadeInUp {
+    animation-name: fadeInUpEff;
+    animation-duration: 1s;
+}
+
+@keyframes fadeInEff {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUpEff {
+    from { opacity: 0; transform: translateY(50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Post/News Card */
+.hc-news-card {
+  border: none;
+  background: transparent;
+}
+
+.hc-news-img {
+  height: 200px;
+  background: #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.hc-news-title {
+  font-weight: 700;
+  color: var(--hc-dark);
+  text-decoration: none;
+  font-size: 1.1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hc-news-title:hover {
+  color: var(--hc-red);
+  text-decoration: none;
+}
+
+.hc-news-date {
+  color: #888;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+/* Footer */
+.hc-footer {
+  background-color: var(--hc-dark);
+  color: white;
+  padding: 50px 0 20px;
+  margin-top: 60px;
+}
+
+.hc-footer a {
+  color: #ccc;
+  text-decoration: none;
+}
+
+.hc-footer a:hover {
+  color: var(--hc-gold);
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
