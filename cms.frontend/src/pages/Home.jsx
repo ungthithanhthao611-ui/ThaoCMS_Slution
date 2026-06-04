@@ -1,7 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import banner1 from '../assets/images/banner_1.png';
+import banner2 from '../assets/images/banner_2.png';
+import banner3 from '../assets/images/banner_3.png';
+
+const banners = [banner1, banner2, banner3];
 
 const Home = () => {
+    const [currentBanner, setCurrentBanner] = useState(0);
+
+    // Auto-play banner
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentBanner((prev) => (prev + 1) % banners.length);
+        }, 4000); // 4 giây đổi ảnh 1 lần
+        return () => clearInterval(timer);
+    }, []);
+
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -29,10 +44,40 @@ const Home = () => {
             {/* 1. Main Banner */}
             <div className="boxhome">
                 <div className="bannerhome lazy-start fadeIn" data-eff="fadeIn" data-delay="0.2">
-                    <div style={{ width: '100%', display: 'block' }}>
+                    <div style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden' }}>
                         <Link to="/shop" className="bg" style={{ display: 'block' }}>
-                            <img src="https://www.highlandscoffee.com.vn/vnt_upload/weblink/2025/HCO_7825_SUMMERDI_DC_BANNER_1920x926.jpg" alt="Banner" style={{ width: '100%' }} />
+                            {banners.map((img, index) => (
+                                <img 
+                                    key={index} 
+                                    src={img} 
+                                    alt={`Banner ${index + 1}`} 
+                                    style={{ 
+                                        width: '100%', 
+                                        objectFit: 'cover',
+                                        position: index === 0 ? 'relative' : 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        opacity: currentBanner === index ? 1 : 0,
+                                        transition: 'opacity 1s ease-in-out'
+                                    }} 
+                                />
+                            ))}
                         </Link>
+                        {/* Dots điều hướng */}
+                        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px' }}>
+                            {banners.map((_, index) => (
+                                <div 
+                                    key={index}
+                                    onClick={() => setCurrentBanner(index)}
+                                    style={{
+                                        width: '12px', height: '12px', borderRadius: '50%',
+                                        backgroundColor: currentBanner === index ? '#b22830' : 'rgba(255,255,255,0.6)',
+                                        cursor: 'pointer', transition: 'all 0.3s',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                    }}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

@@ -19,6 +19,23 @@
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label fw-bold">Danh mục cha (Tùy chọn):</label>
+                    <select asp-for="ParentId" class="form-select">
+                        <option value="">-- Là Danh mục gốc --</option>
+                        @if (ViewBag.Categories != null)
+                        {
+                            foreach (var cat in (IEnumerable<CMS.Data.Entities.CategoryProduct>)ViewBag.Categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Hình ảnh đại diện (Tùy chọn):</label>
+                    <input asp-for="ImageUrl" class="form-control" placeholder="Nhập đường dẫn hình ảnh (URL)..." />
+                </div>
+                <div class="mb-3">
                     <label class="form-label fw-bold">Mô tả chi tiết:</label>
                     <textarea asp-for="Description" class="form-control" rows="4"></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>

@@ -7,6 +7,7 @@ Ngay thuc hien:15/5/2026
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CMS.Data.Entities
 {
@@ -25,6 +26,15 @@ namespace CMS.Data.Entities
 
         // Dấu chấm hỏi '?' ở kiểu string (string?) nghĩa là cho phép trường này nhận giá trị null (có thể bỏ trống)
         public string? Description { get; set; }
+
+        public string? ImageUrl { get; set; } // Thêm hình ảnh đại diện danh mục nếu cần
+
+        public int? ParentId { get; set; }
+
+        [ForeignKey("ParentId")]
+        public virtual CategoryProduct? Parent { get; set; }
+
+        public virtual ICollection<CategoryProduct>? Subcategories { get; set; }
 
         // Mối quan hệ 1-Nhiều: Một CategoryProduct có thể chứa nhiều Product
         public virtual ICollection<Product>? Products { get; set; }

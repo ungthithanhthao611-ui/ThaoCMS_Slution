@@ -34,12 +34,22 @@ namespace CMS.Backend.Controllers
             {
                 // [BUỔI 6] Bước A: Quét bảng dữ liệu CategoriesProducts số nhiều dưới SQL Server lên
                 var categories = await _context.CategoriesProducts
+                    .Include(c => c.Subcategories) // Include subcategories
                     .OrderByDescending(c => c.Id)                    
                     .Select(c => new {
                         // [BUỔI 6] Bước B: Kỹ thuật gọt tỉa (Projection) - chỉ lấy các trường cần thiết ra FrontEnd
                         c.Id,
                         c.Name,
-                        c.Description
+                        c.Description,
+                        c.ImageUrl,
+                        c.ParentId,
+                        Subcategories = c.Subcategories.Select(sub => new {
+                            sub.Id,
+                            sub.Name,
+                            sub.Description,
+                            sub.ImageUrl,
+                            sub.ParentId
+                        }).ToList()
                     })
                     .ToListAsync(); // Chuyển đổi bất đồng bộ sang dạng danh sách mảng
 

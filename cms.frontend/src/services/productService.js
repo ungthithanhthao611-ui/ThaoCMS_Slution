@@ -7,7 +7,7 @@ const productService = {
         return axiosClient.get(url);
     },
     getProductsByCategory: (categoryId) => {
-        const url = `/Products/categoryproduct/${categoryId}`;
+        const url = `/Products/category/${categoryId}`;  // Đúng với route [HttpGet("category/{categoryProductId}")] trong Backend
         return axiosClient.get(url);
     }
 };

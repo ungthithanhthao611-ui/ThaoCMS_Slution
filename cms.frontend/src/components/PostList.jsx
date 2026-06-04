@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import blogService from '../services/blogService';
 
 const PostList = () => {
@@ -46,9 +47,9 @@ const PostList = () => {
                                     {new Date(post.createdDate).toLocaleDateString('vi-VN')}
                                 </div>
                                 <h5 className="mt-2 mb-2">
-                                    <a href={`/post/${post.id}`} className="hc-news-title">
+                                    <Link to={`/post/${post.id}`} className="hc-news-title">
                                         {post.title}
-                                    </a>
+                                    </Link>
                                 </h5>
                                 <p className="text-muted small line-clamp-3 mb-0">
                                     {post.shortDescription || 'Cùng hệ thống của chúng tôi khám phá những câu chuyện đầy cảm hứng. Click để đọc thêm chi tiết về chủ đề này...'}
