@@ -1,4 +1,4 @@
-﻿/*Sinh vien:Ung Thị Thanh Thảo 
+/*Sinh vien:Ung Thị Thanh Thảo 
  Ma sv:2123110174
 Lop:CCQ2311E
 Mo ta: Thực hiện quản lý danh sách đơn hàng
@@ -27,6 +27,10 @@ namespace CMS.Data.Entities
         public int Status { get; set; } // 0: Chờ duyệt, 1: Đang giao, 2: Đã xong
 
         public string? Notes { get; set; }
+
+        public string? DeliveryAddress { get; set; } // Địa chỉ giao hàng
+
+        public DateTime? DeliveryTime { get; set; } // Thời gian giao (null = giao ngay)
 
         [ForeignKey("CustomerId")]
         public virtual Customer? Customer { get; set; }

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
   --hc-red: #b22830;
   --hc-red-hover: #911e25;
@@ -10,7 +12,7 @@
 }
 
 body {
-  font-family: 'Outfit', 'Arial', sans-serif !important;
+  font-family: 'Inter', 'Arial', sans-serif !important;
   background-color: var(--hc-light) !important;
   color: var(--text-main) !important;
   -webkit-font-smoothing: antialiased;
@@ -192,20 +194,30 @@ body {
 }
 
 /* ==============================================================
-   FIX GIAO DIỆN CATEGORY (THỰC ĐƠN) BỊ VỠ DO THIẾU PRODUCT.CSS
+   CATEGORY FULL-WIDTH LAYOUT (GIỐNG HIGHLANDS COFFEE GỐC)
    ============================================================== */
+.block-category,
+div.block-category,
+#vnt-content .block-category {
+    overflow: visible;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+
 .block-category .menu {
     position: relative;
     width: 100%;
-    min-height: 450px;
+    height: 480px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     overflow: visible;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     z-index: 10;
 }
 
+/* .imgWrap là layer chứa ảnh ly - full size, absolute */
 .block-category .menu .imgWrap {
     position: absolute;
     top: 0;
@@ -213,63 +225,96 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1;
+    overflow: visible;
 }
 
 .block-category .menu .imgWrap .wrapper {
+    width: 100%;
     height: 100%;
     position: relative;
+    overflow: visible;
 }
 
+/* === HÌNH ẢNH LY NƯỚC - FIXED bên phải/trái === */
 .block-category .menu .imgCat {
     position: absolute;
-    bottom: -100px;
-    right: 0;
-    width: 50%;
-    text-align: center;
+    top: 50%;
+    right: 2%;
+    transform: translateY(-55%); /* Trồi lên nhẹ - không bị header che */
+    width: 46%;
+    height: 120%; /* Vừa phải, trồi đều trên/dưới */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 15;
+    overflow: visible;
+    pointer-events: none;
+}
+
+/* Section chẵn: ly nước bên TRÁI */
+.block-category .menu:nth-child(even) .imgCat {
+    right: auto;
+    left: 2%;
+    transform: translateY(-55%);
+}
+
+.block-category .menu .imgCat a {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
 }
 
 .block-category .menu .imgCat img {
-    width: 100%;
-    height: auto;
-    max-width: 110%;
-    margin-top: -120px;
-    margin-bottom: -50px;
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: 100%;
     object-fit: contain;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
 }
 
+.block-category .menu .imgCat img:hover {
+    transform: translateY(-10px) scale(1.04);
+    filter: drop-shadow(0 25px 45px rgba(0,0,0,0.5));
+}
+
+/* === TEXT CAPTION === */
 .block-category .menu > .wrapper {
     position: relative;
     z-index: 2;
+    width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
-    min-height: 500px;
+    padding: 0 60px;
+    min-height: 480px;
 }
 
 .block-category .menu .caption {
-    width: 50%;
-    padding-right: 50px;
+    width: 46%;
+    padding-right: 20px;
 }
 
-.block-category .menu:nth-child(even) .imgCat {
-    right: auto;
-    left: 0;
-}
-
+/* Section chẵn: text bên PHẢI */
 .block-category .menu:nth-child(even) .caption {
-    margin-left: 50%;
+    margin-left: auto;
     padding-right: 0;
-    padding-left: 50px;
+    padding-left: 20px;
+    text-align: right;
 }
 
 .block-category .menu .tend h3 {
-    font-size: 50px;
-    font-weight: bold;
+    font-size: 56px;
+    font-weight: 900;
     text-transform: uppercase;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     font-family: inherit;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    line-height: 1;
 }
 
 .block-category .menu .tend h3 a {
@@ -278,26 +323,30 @@ body {
 }
 
 .block-category .menu .des {
-    font-size: 18px;
-    line-height: 1.6;
-    margin-bottom: 40px;
-    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.7;
+    margin-bottom: 35px;
+    font-weight: 400;
+    opacity: 0.9;
+    max-width: 420px;
 }
 
 .block-category .menu .link a {
     display: inline-block;
-    padding: 12px 45px;
-    border: 1px solid currentColor;
+    padding: 13px 48px;
+    border: 2px solid currentColor;
     color: inherit;
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 700;
     text-transform: uppercase;
     transition: all 0.3s ease;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    font-size: 13px;
 }
 
 .block-category .menu .link a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 3px;
 }
 
 /* ==============================================================
@@ -387,12 +436,26 @@ body {
 
 .lazyloading.fadeIn {
     animation-name: fadeInEff;
-    animation-duration: 1s;
+    animation-duration: 0.8s;
+    animation-timing-function: ease-out;
 }
 
 .lazyloading.fadeInUp {
     animation-name: fadeInUpEff;
-    animation-duration: 1s;
+    animation-duration: 0.9s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lazyloading.fadeInLeft {
+    animation-name: fadeInLeftEff;
+    animation-duration: 0.9s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lazyloading.fadeInRight {
+    animation-name: fadeInRightEff;
+    animation-duration: 0.9s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeInEff {
@@ -401,9 +464,214 @@ body {
 }
 
 @keyframes fadeInUpEff {
-    from { opacity: 0; transform: translateY(50px); }
+    from { opacity: 0; transform: translateY(40px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes fadeInLeftEff {
+    from { opacity: 0; transform: translateX(-50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRightEff {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* ==============================================================
+   SCROLL FLY-IN ANIMATION - LY NƯỚC BAY VÀO KHI SCROLL ĐẾN
+   ============================================================== */
+
+/* --- Trạng thái ẨN ban đầu --- */
+.cup-flyIn {
+    opacity: 0;
+    transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cup-flyIn.from-right {
+    transform: translateY(-55%) translateX(120px); /* Ẩn bên phải */
+}
+.cup-flyIn.from-left {
+    transform: translateY(-55%) translateX(-120px); /* Ẩn bên trái */
+}
+
+.caption-flyIn {
+    opacity: 0;
+    transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.caption-flyIn.from-left {
+    transform: translateX(-60px);
+}
+.caption-flyIn.from-right {
+    transform: translateX(60px);
+}
+
+/* --- Trạng thái HIỆN khi section-visible được thêm vào --- */
+.cat-section.section-visible .cup-flyIn {
+    opacity: 1;
+}
+.cat-section.section-visible .cup-flyIn.from-right {
+    transform: translateY(-55%) translateX(0); /* Bay về đúng vị trí */
+}
+.cat-section.section-visible .cup-flyIn.from-left {
+    transform: translateY(-55%) translateX(0);
+}
+
+.cat-section.section-visible .caption-flyIn {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Áp dụng animation-delay inline cho caption */
+.cat-section.section-visible .caption-flyIn[style*="0.1"] { transition-delay: 0.1s; }
+.cat-section.section-visible .caption-flyIn[style*="0.25"] { transition-delay: 0.25s; }
+.cat-section.section-visible .caption-flyIn[style*="0.4"] { transition-delay: 0.4s; }
+
+
+/* ==============================================================
+   HIỆU ỨNG BAY LƠ LỬNG SAU KHI ĐÃ BAY VÀO (float lên xuống liên tục)
+   ============================================================== */
+@keyframes floatCup {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-14px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes floatCupAlt {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Áp dụng animation lên IMG bên trong, không đụng tới imgCat (container định vị) */
+.block-category .menu .imgCat img {
+    animation: floatCup 4s ease-in-out infinite;
+}
+
+.block-category .menu:nth-child(even) .imgCat img {
+    animation: floatCupAlt 4.5s ease-in-out infinite;
+    animation-delay: 0.8s;
+}
+
+.block-category .menu .imgCat:hover img {
+    animation-play-state: paused;
+    transform: translateY(-8px) scale(1.04);
+    filter: drop-shadow(0 25px 45px rgba(0,0,0,0.5));
+}
+
+/* ==============================================================
+   HIỆU ỨNG RIPPLE KHI BẤM NÚT
+   ============================================================== */
+.block-category .menu .link a {
+    position: relative;
+    overflow: hidden;
+}
+
+.block-category .menu .link a::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
+    opacity: 0;
+}
+
+.block-category .menu .link a:hover::after {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+}
+
+/* ==============================================================
+   HIỆU ỨNG CARD SẢN PHẨM - NÂNG CAO
+   ============================================================== */
+.hc-card {
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
+}
+
+.hc-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
+}
+
+/* Hình ảnh trong card zoom nhẹ khi hover */
+.hc-card .hc-card-img-container img {
+    transition: transform 0.4s ease;
+}
+
+.hc-card:hover .hc-card-img-container img {
+    transform: scale(1.06);
+}
+
+/* ==============================================================
+   HIỆU ỨNG HEADER BUTTON
+   ============================================================== */
+.hc-btn-primary {
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.hc-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(178, 40, 48, 0.4);
+}
+
+.hc-btn-primary:active {
+    transform: translateY(0px);
+}
+
+/* ==============================================================
+   HIỆU ỨNG MENU NAV ITEM
+   ============================================================== */
+.tpmenuhead ul > li > a {
+    position: relative;
+}
+
+.tpmenuhead ul > li > a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: #e5a365;
+    transition: width 0.3s ease, left 0.3s ease;
+}
+
+.tpmenuhead ul > li > a:hover::after {
+    width: 100%;
+    left: 0;
+}
+
+/* ==============================================================
+   HIỆU ỨNG PULSE CHO GIỎ HÀNG
+   ============================================================== */
+@keyframes pulse-badge {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.cart-badge-pulse {
+    animation: pulse-badge 0.5s ease;
+}
+
+/* ==============================================================
+   HIỆU ỨNG PAGE TRANSITION
+   ============================================================== */
+#vnt-content {
+    animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
 
 /* Post/News Card */
 .hc-news-card {
@@ -464,4 +732,9 @@ body {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;  
   overflow: hidden;
+}
+
+/* Ép kiểu font cho nội dung bài viết HTML từ CKEditor / Database */
+.post-content, .post-content * {
+    font-family: 'Inter', 'Arial', sans-serif !important;
 }

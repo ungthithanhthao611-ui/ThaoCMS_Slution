@@ -36,6 +36,7 @@ namespace CMS.Backend.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            ViewBag.Categories = _context.CategoriesProducts.Where(c => c.ParentId == null).ToList();
             return View();
         }
 
@@ -48,6 +49,7 @@ namespace CMS.Backend.Controllers
                 _context.SaveChanges();
                 return RedirectToAction("Index");
             }
+            ViewBag.Categories = _context.CategoriesProducts.Where(c => c.ParentId == null).ToList();
             return View(model);
         }
 
@@ -59,6 +61,7 @@ namespace CMS.Backend.Controllers
         {
             var category = _context.CategoriesProducts.Find(id);
             if (category == null) return NotFound();
+            ViewBag.Categories = _context.CategoriesProducts.Where(c => c.ParentId == null && c.Id != id).ToList();
             return View(category);
         }
 
@@ -71,6 +74,7 @@ namespace CMS.Backend.Controllers
                 _context.SaveChanges();
                 return RedirectToAction("Index");
             }
+            ViewBag.Categories = _context.CategoriesProducts.Where(c => c.ParentId == null && c.Id != model.Id).ToList();
             return View(model);
         }
 

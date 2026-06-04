@@ -42,8 +42,8 @@ namespace CMS.Backend.Controllers
             return Ok(products);
         }
 
-        // [BUỔI 6] 2. Định nghĩa đường dẫn chứa tham số động: api/products/categoryproduct/{categoryProductId}
-        [HttpGet("categoryproduct/{categoryProductId}")]
+        // [BUỔI 6] 2. Định nghĩa đường dẫn chứa tham số động: api/products/category/{categoryProductId}
+        [HttpGet("category/{categoryProductId}")]
         public async Task<IActionResult> GetByCategoryProduct(int categoryProductId)
         {
             // Lọc các sản phẩm có CategoryProductId trùng với ID truyền vào từ thanh URL
