@@ -178,6 +178,41 @@ body {
   font-size: 1.2rem;
 }
 
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.product-grid-item {
+  min-width: 0;
+  display: flex;
+}
+
+.product-grid-item > .hc-card {
+  width: 100%;
+}
+
+@media (max-width: 1199px) {
+  .product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .hc-btn-primary {
   background-color: var(--hc-red);
   color: white;

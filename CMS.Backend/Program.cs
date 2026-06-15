@@ -1,12 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using CMS.Data;
 using Microsoft.AspNetCore.Authentication.Cookies; // [BUỔI 5] Thư viện xác thực Cookie
+using CMS.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký kết nối Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Đăng ký EmailService
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

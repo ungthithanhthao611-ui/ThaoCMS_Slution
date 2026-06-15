@@ -11,7 +11,7 @@
             <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square"></i> CHỈNH SỬA LOẠI SẢN PHẨM</h5>
         </div>
         <div class="card-body p-4">
-            <form asp-action="Edit" method="post">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
                 <div class="mb-3">
                     <label class="form-label fw-bold">Tên loại sản phẩm:</label>
@@ -32,9 +32,21 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Hình ảnh đại diện (Tùy chọn):</label>
+                    <label class="form-label fw-bold">Tải lên hình ảnh đại diện mới:</label>
+                    <input type="file" name="uploadImage" class="form-control" accept="image/*" />
+                    <small class="text-muted">Chọn tệp hình ảnh từ máy tính nếu muốn thay ảnh mới.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Hoặc nhập link hình ảnh mới (URL):</label>
                     <input asp-for="ImageUrl" class="form-control" placeholder="Nhập đường dẫn hình ảnh (URL)..." />
                 </div>
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold d-block">Hình ảnh hiện tại:</label>
+                        <img src="@Model.ImageUrl" alt="Current Image" class="img-thumbnail" style="max-height: 80px; max-width: 120px; object-fit: cover;" onerror="this.onerror=null; this.src='https://placehold.co/120x80?text=No+Image'" />
+                    </div>
+                }
                 <div class="mb-3">
                     <label class="form-label fw-bold">Mô tả chi tiết:</label>
                     <textarea asp-for="Description" class="form-control" rows="4"></textarea>

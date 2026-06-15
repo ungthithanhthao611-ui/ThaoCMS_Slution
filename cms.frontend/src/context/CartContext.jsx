@@ -3,10 +3,26 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+    // Lấy tên key giỏ hàng riêng cho từng tài khoản đăng nhập
+    const getCartKey = () => {
+        try {
+            const customerStr = localStorage.getItem('customer');
+            if (customerStr) {
+                const customer = JSON.parse(customerStr);
+                if (customer && customer.id) {
+                    return `hc_cart_${customer.id}`;
+                }
+            }
+        } catch (e) {
+            console.error("Lỗi khi đọc tài khoản để lấy giỏ hàng:", e);
+        }
+        return 'hc_cart_guest';
+    };
+
     // Khôi phục giỏ hàng từ localStorage khi khởi động
     const [cartItems, setCartItems] = useState(() => {
         try {
-            const saved = localStorage.getItem('hc_cart');
+            const saved = localStorage.getItem(getCartKey());
             return saved ? JSON.parse(saved) : [];
         } catch {
             return [];
@@ -15,7 +31,7 @@ export const CartProvider = ({ children }) => {
 
     // Tự động lưu vào localStorage mỗi khi giỏ hàng thay đổi
     useEffect(() => {
-        localStorage.setItem('hc_cart', JSON.stringify(cartItems));
+        localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
     }, [cartItems]);
 
     // Thêm sản phẩm vào giỏ (nếu đã có thì cộng dồn số lượng)

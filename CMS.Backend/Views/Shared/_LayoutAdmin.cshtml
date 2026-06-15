@@ -55,6 +55,12 @@
                         <a asp-controller="OrderDetail" asp-action="Index" class="@(currentController.Equals("OrderDetail", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
                             <i class="bi bi-list-check"></i> Đơn hàng chi tiết
                         </a>
+                        <a asp-controller="Banner" asp-action="Index" class="@(currentController.Equals("Banner", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-images"></i> Quản lý Banner
+                        </a>
+                        <a asp-controller="Menu" asp-action="Index" class="@(currentController.Equals("Menu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="bi bi-menu-button-wide"></i> Quản lý Menu
+                        </a>
                     </div>
                 </div>
 

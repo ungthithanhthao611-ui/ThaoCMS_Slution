@@ -179,6 +179,42 @@ namespace CMS.Data
                     context.SaveChanges();
                 }
             }
+
+            // 6. Khởi tạo Banner mẫu nếu trống
+            if (!context.Banners.Any())
+            {
+                context.Banners.AddRange(new List<Banner>
+                {
+                    new Banner 
+                    { 
+                        Title = "ĐẶT TRƯỚC - LẤY NGAY", 
+                        ImageUrl = "/uploads/banner_1.png", 
+                        LinkUrl = "/san-pham", 
+                        Description = "Bỏ qua hàng chờ, nhận nước liền tay với HighlandsĐI",
+                        DisplayOrder = 1,
+                        IsActive = true
+                    },
+                    new Banner 
+                    { 
+                        Title = "PHIN SỮA ĐÁ", 
+                        ImageUrl = "/uploads/banner_2.png", 
+                        LinkUrl = "/san-pham", 
+                        Description = "Đậm đà hương vị truyền thống Highlands Coffee",
+                        DisplayOrder = 2,
+                        IsActive = true
+                    },
+                    new Banner 
+                    { 
+                        Title = "FREEZE TRÀ XANH", 
+                        ImageUrl = "/uploads/banner_3.png", 
+                        LinkUrl = "/san-pham", 
+                        Description = "Thơm ngon thanh mát bừng tỉnh năng lượng ngày mới",
+                        DisplayOrder = 3,
+                        IsActive = true
+                    }
+                });
+                context.SaveChanges();
+            }
         }
     }
 }

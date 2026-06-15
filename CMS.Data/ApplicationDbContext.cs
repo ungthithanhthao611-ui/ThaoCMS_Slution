@@ -1,4 +1,4 @@
-﻿using CMS.Data.Entities;
+using CMS.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -19,7 +19,8 @@ namespace CMS.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
-
+        public DbSet<Banner> Banners { get; set; }
+        public DbSet<Menu> Menus { get; set; }
     }
 }
 

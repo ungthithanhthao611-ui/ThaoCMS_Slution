@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ProductList from '../components/ProductList';
 import categoryProductService from '../services/categoryProductService';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
+import imgBanhMi from '../assets/images/sp/bannerbanhmi.jpg';
 
 const CategoryPage = () => {
     const { id } = useParams();
@@ -64,6 +67,14 @@ const CategoryPage = () => {
                 displayName: item.name,
                 displayDescription: item.description
             };
+        } else if (lowerName.includes('bánh mì') || lowerName.includes('banh mi')) {
+            return {
+                style: { color: '#b22830', backgroundColor: '#e9e6e1', backgroundImage: 'none' }, // Nền xám nhạt trùng màu ảnh, chữ đỏ
+                img: item.imageUrl || imgBanhMi,
+                imgStyle: { maxHeight: '400px', width: 'auto', borderRadius: '15px', boxShadow: '0 15px 30px rgba(0,0,0,0.1)' }, // Thu ngắn ảnh lại
+                displayName: item.name,
+                displayDescription: item.description
+            };
         } else {
             return {
                 style: { color: '#ffffff', backgroundColor: '#ffffff', backgroundImage: 'url(https://www.highlandscoffee.com.vn/vnt_upload/product/01_2026/O2O_AFF___Banner_1440_x_630.png)' },
@@ -75,11 +86,15 @@ const CategoryPage = () => {
     };
 
     if (loading) {
-        return <div className="text-center my-5">Đang tải danh mục...</div>;
+        return (
+            <><Header /><div className="text-center my-5" style={{padding:'80px 0'}}>Đang tải danh mục...</div><Footer /></>
+        );
     }
 
     if (!category) {
-        return <div className="text-center my-5">Không tìm thấy danh mục này hoặc danh mục này là danh mục con.</div>;
+        return (
+            <><Header /><div className="text-center my-5" style={{padding:'80px 0'}}>Không tìm thấy danh mục này.</div><Footer /></>
+        );
     }
 
     const catStyle = getCategoryStyle(category);
@@ -108,13 +123,14 @@ const CategoryPage = () => {
 
     return (
         <div id="vnt-content">
+            <Header />
             {/* Banner Khổng Lồ của Danh Mục */}
             <div className="block-category" style={{marginTop: '-20px'}}>
                 <div className="menu hc-menu-category" style={catStyle.style}>
                     <div className="imgWrap">
                         <div className="wrapper d-flex align-items-center">
-                            <div className="imgCat animated fadeIn" style={{ animationDelay: '0.2s' }}>
-                                <img src={catStyle.img} alt={catStyle.displayName} />
+                            <div className="imgCat animated fadeIn" style={{ animationDelay: '0.2s', display: 'flex', justifyContent: 'center' }}>
+                                <img src={catStyle.img} alt={catStyle.displayName} style={catStyle.imgStyle || {}} />
                             </div>
                         </div>
                     </div>
@@ -226,6 +242,7 @@ const CategoryPage = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 };

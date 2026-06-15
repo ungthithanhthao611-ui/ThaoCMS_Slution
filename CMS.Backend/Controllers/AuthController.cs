@@ -41,7 +41,7 @@ namespace CMS.Backend.Controllers
                 {
                     FullName = input.FullName,
                     Email = input.Email,
-                    Password = input.Password, // Lưu mật khẩu thô theo yêu cầu
+                    Password = BCrypt.Net.BCrypt.HashPassword(input.Password), // Đã mã hóa mật khẩu
                     Phone = input.Phone,
                     Address = input.Address
                 };
@@ -68,9 +68,9 @@ namespace CMS.Backend.Controllers
 
             // Kiểm tra thông tin trong CSDL
             var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.Email == input.Email && c.Password == input.Password);
+                .FirstOrDefaultAsync(c => c.Email == input.Email);
 
-            if (customer == null)
+            if (customer == null || !BCrypt.Net.BCrypt.Verify(input.Password, customer.Password))
             {
                 return Unauthorized(new { message = "Email hoặc Mật khẩu không đúng." });
             }
