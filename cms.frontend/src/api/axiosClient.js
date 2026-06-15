@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+export const IMAGE_BASE = process.env.REACT_APP_IMAGE_BASE_URL || 'https://localhost:7030';
+export const API_BASE = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace(/\/api$/, '') : 'https://localhost:7030';
+
 // [BUỔI 7] Khởi tạo một thực thể axios với cấu hình base chung
 const axiosClient = axios.create({
-    baseURL: 'https://localhost:7030/api', // Đổi lại đúng cổng Port Backend
+    baseURL: process.env.REACT_APP_API_URL || `${API_BASE}/api`, // Lấy từ file .env
     headers: {
         'Content-Type': 'application/json',
     },

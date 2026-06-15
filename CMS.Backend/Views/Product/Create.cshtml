@@ -46,6 +46,12 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label fw-bold">Giá khuyến mãi (VNĐ - bỏ trống nếu không sale):</label>
+                            <input asp-for="SalePrice" type="number" step="1000" class="form-control" placeholder="Ví dụ: 13000000" />
+                            <span asp-validation-for="SalePrice" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label fw-bold">Số lượng kho:</label>
                             <input asp-for="StockQuantity" type="number" class="form-control" placeholder="Ví dụ: 10" required />
                             <span asp-validation-for="StockQuantity" class="text-danger"></span>

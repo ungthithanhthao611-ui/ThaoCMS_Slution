@@ -1,13 +1,11 @@
-/*Sinh vien:Ung Thị Thanh Thảo 
-Ma sv:2123110174
-Lop:CCQ2311E
-Mo ta: Thực hiện quản lý CRUD Loại sản phẩm (CategoryProduct) - BUỔI 5
-*/
 using CMS.Data;
 using CMS.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization; // [BUỔI 5]
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 {
@@ -41,12 +39,32 @@ namespace CMS.Backend.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(CategoryProduct model)
+        public IActionResult Create(CategoryProduct model, IFormFile uploadImage)
         {
+            if (uploadImage != null && uploadImage.Length > 0)
+            {
+                string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(uploadImage.FileName);
+                string filePath = Path.Combine(folder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    uploadImage.CopyTo(stream);
+                }
+
+                model.ImageUrl = "/uploads/" + fileName;
+            }
+
             if (ModelState.IsValid)
             {
                 _context.CategoriesProducts.Add(model);
                 _context.SaveChanges();
+                TempData["SuccessMessage"] = "Thêm mới loại sản phẩm thành công!";
                 return RedirectToAction("Index");
             }
             ViewBag.Categories = _context.CategoriesProducts.Where(c => c.ParentId == null).ToList();
@@ -66,12 +84,39 @@ namespace CMS.Backend.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(CategoryProduct model)
+        public IActionResult Edit(CategoryProduct model, IFormFile uploadImage)
         {
+            var existingCategory = _context.CategoriesProducts.AsNoTracking().FirstOrDefault(c => c.Id == model.Id);
+            if (existingCategory == null) return NotFound();
+
+            if (uploadImage != null && uploadImage.Length > 0)
+            {
+                string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(uploadImage.FileName);
+                string filePath = Path.Combine(folder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    uploadImage.CopyTo(stream);
+                }
+
+                model.ImageUrl = "/uploads/" + fileName;
+            }
+            else if (string.IsNullOrEmpty(model.ImageUrl))
+            {
+                model.ImageUrl = existingCategory.ImageUrl;
+            }
+
             if (ModelState.IsValid)
             {
                 _context.CategoriesProducts.Update(model);
                 _context.SaveChanges();
+                TempData["SuccessMessage"] = "Cập nhật loại sản phẩm thành công!";
                 return RedirectToAction("Index");
             }
             ViewBag.Categories = _context.CategoriesProducts.Where(c => c.ParentId == null && c.Id != model.Id).ToList();

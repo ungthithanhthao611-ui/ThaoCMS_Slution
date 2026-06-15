@@ -13,6 +13,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization; // [BUỔI 5]
+using X.PagedList; // Import thư viện phân trang
 
 namespace CMS.Backend.Controllers
 {
@@ -29,10 +30,13 @@ namespace CMS.Backend.Controllers
         // ==========================================
         // 1. HIỂN THỊ DANH SÁCH SẢN PHẨM
         // ==========================================
-        public IActionResult Index()
+        public IActionResult Index(int? page)
         {
-            // [BUỔI 3/4] Eager Loading nạp kèm thông tin Loại sản phẩm (CategoryProduct) để tránh lỗi Null
-            var data = _context.Products.Include(p => p.CategoryProduct).ToList();
+            int pageSize = 5; // Số sản phẩm trên mỗi trang
+            int pageNumber = page ?? 1;
+
+            // Nạp kèm thông tin Loại sản phẩm (CategoryProduct) để tránh lỗi Null, sắp xếp ID giảm dần
+            var data = _context.Products.Include(p => p.CategoryProduct).OrderByDescending(p => p.Id).ToPagedList(pageNumber, pageSize);
             return View(data);
         }
 

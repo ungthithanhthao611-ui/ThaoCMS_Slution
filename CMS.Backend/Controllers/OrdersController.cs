@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
+using CMS.Backend.Services;
+
 namespace CMS.Backend.Controllers
 {
     [Route("api/[controller]")]
@@ -14,10 +16,12 @@ namespace CMS.Backend.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public OrdersController(ApplicationDbContext context)
+        public OrdersController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -85,6 +89,24 @@ namespace CMS.Backend.Controllers
 
                 // Commit transaction
                 await transaction.CommitAsync();
+
+                // Gửi email xác nhận đơn hàng
+                try
+                {
+                    var customer = await _context.Customers.FindAsync(newOrder.CustomerId);
+                    if (customer != null)
+                    {
+                        var details = await _context.OrderDetails
+                            .Include(od => od.Product)
+                            .Where(od => od.OrderId == newOrder.Id)
+                            .ToListAsync();
+                        await _emailService.SendOrderConfirmationEmailAsync(newOrder, customer, details);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    Console.WriteLine($"Lỗi gửi email xác nhận đơn hàng: {emailEx.Message}");
+                }
 
                 // [BUỔI 6] Bước C: Trả về mã thành công 201 Created và gửi ngược lại mã ID đơn hàng vừa tạo
                 return StatusCode(201, new { 
