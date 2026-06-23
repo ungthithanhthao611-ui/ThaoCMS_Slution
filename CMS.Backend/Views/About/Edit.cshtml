@@ -1,0 +1,44 @@
+@model CMS.Data.Entities.About
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Chỉnh sửa bài giới thiệu";
+}
+
+<div class="container mt-4">
+    <h2 class="text-warning">CHỈNH SỬA PHÂN KHU GIỚI THIỆU</h2>
+    <hr />
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tên phân khu (Section Name):</label>
+            <input asp-for="SectionName" class="form-control" readonly style="background-color: #e9ecef;" />
+            <small class="text-muted">Không thể thay đổi phân khu mặc định của trang chủ.</small>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tiêu đề chính (Title):</label>
+            <input asp-for="Title" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tiêu đề phụ (Subtitle):</label>
+            <input asp-for="Subtitle" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Đường dẫn hình ảnh (ImageUrl):</label>
+            <input asp-for="ImageUrl" class="form-control" />
+            <small class="text-muted">Nhập link ảnh (ví dụ: https://www.highlandscoffee.com.vn/...)</small>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Nội dung đoạn văn giới thiệu (Content):</label>
+            <textarea asp-for="Content" class="form-control" rows="6" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-warning px-4">Cập nhật thay đổi</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+    </form>
+</div>

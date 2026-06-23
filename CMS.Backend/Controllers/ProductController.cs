@@ -13,6 +13,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization; // [BUỔI 5]
+using X.PagedList; // Import thư viện phân trang
 
 namespace CMS.Backend.Controllers
 {
@@ -29,10 +30,13 @@ namespace CMS.Backend.Controllers
         // ==========================================
         // 1. HIỂN THỊ DANH SÁCH SẢN PHẨM
         // ==========================================
-        public IActionResult Index()
+        public IActionResult Index(int? page)
         {
-            // [BUỔI 3/4] Eager Loading nạp kèm thông tin Loại sản phẩm (CategoryProduct) để tránh lỗi Null
-            var data = _context.Products.Include(p => p.CategoryProduct).ToList();
+            int pageSize = 5; // Số sản phẩm trên mỗi trang
+            int pageNumber = page ?? 1;
+
+            // Nạp kèm thông tin Loại sản phẩm (CategoryProduct) để tránh lỗi Null, sắp xếp ID giảm dần
+            var data = _context.Products.Include(p => p.CategoryProduct).OrderByDescending(p => p.Id).ToPagedList(pageNumber, pageSize);
             return View(data);
         }
 
@@ -138,6 +142,55 @@ namespace CMS.Backend.Controllers
                 _context.SaveChanges();
             }
             return RedirectToAction("Index");
+        }
+
+        // ==========================================
+        // 5. CẬP NHẬT TRẠNG THÁI SẢN PHẨM NHANH (AJAX)
+        // ==========================================
+        [HttpPost]
+        public IActionResult ToggleStatus(int id, string type, decimal? salePrice = null)
+        {
+            var product = _context.Products.Find(id);
+            if (product == null) return NotFound(new { success = false, message = "Không tìm thấy sản phẩm." });
+
+            if (type == "IsNew")
+            {
+                product.IsNew = !product.IsNew;
+            }
+            else if (type == "IsBestSeller")
+            {
+                product.IsBestSeller = !product.IsBestSeller;
+            }
+            else if (type == "IsPromo")
+            {
+                product.IsPromo = !product.IsPromo;
+                if (product.IsPromo)
+                {
+                    if (salePrice.HasValue && salePrice.Value > 0)
+                    {
+                        product.SalePrice = salePrice;
+                    }
+                    else
+                    {
+                        // Mặc định giảm 10% nếu không nhập
+                        product.SalePrice = Math.Round(product.Price * 0.9m);
+                    }
+                }
+                else
+                {
+                    product.SalePrice = null;
+                }
+            }
+
+            _context.SaveChanges();
+            return Json(new { 
+                success = true, 
+                isNew = product.IsNew, 
+                isBest = product.IsBestSeller, 
+                isPromo = product.IsPromo, 
+                salePrice = product.SalePrice,
+                price = product.Price
+            });
         }
     }
 }

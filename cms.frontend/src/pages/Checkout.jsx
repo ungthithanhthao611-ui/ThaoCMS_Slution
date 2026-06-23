@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import orderService from '../services/orderService';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 // Danh sách chi nhánh Highlands HCM (hard-code)
 const HCM_BRANCHES = [
@@ -126,7 +128,18 @@ const Checkout = () => {
         }
     };
 
-    React.useEffect(() => {
+    // Tự động điền địa chỉ từ localStorage
+    useEffect(() => {
+        const stored = localStorage.getItem('customer');
+        if (stored) {
+            const customer = JSON.parse(stored);
+            if (customer.address) {
+                setStreetAddress(customer.address);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
         if (cartItems.length === 0 && !isSuccess) {
             navigate('/cart');
         }
@@ -137,8 +150,21 @@ const Checkout = () => {
     }
 
     return (
-        <div style={{ minHeight: '80vh', backgroundColor: '#f8f8f8', padding: '40px 0' }}>
-            <div className="wrapper">
+        <>
+            <Header />
+            <div style={{ minHeight: '80vh', backgroundColor: '#f8f8f8', padding: '40px 0' }}>
+                <div className="wrapper">
+                    {/* Nút quay lại giỏ hàng */}
+                    <div style={{ marginBottom: '20px' }}>
+                        <Link to="/cart" style={{
+                            display: 'inline-block', padding: '10px 20px', backgroundColor: '#fff',
+                            color: '#333', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold',
+                            fontSize: '0.9rem', transition: 'all 0.3s', border: '1px solid #ddd',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+                        }}>
+                            <i className="fa fa-arrow-left" style={{ marginRight: '8px' }}></i> Quay về Giỏ Hàng
+                        </Link>
+                    </div>
                 <h2 style={{ color: '#b22830', fontWeight: '800', textTransform: 'uppercase', marginBottom: '30px', fontSize: '26px' }}>
                     🚀 Xác nhận đặt hàng
                 </h2>
@@ -356,7 +382,9 @@ const Checkout = () => {
                 </div>
             </div>
         </div>
-    );
+        <Footer />
+    </>
+);
 };
 
 export default Checkout;

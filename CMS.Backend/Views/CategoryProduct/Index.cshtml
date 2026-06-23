@@ -6,6 +6,14 @@
 }
 
 <div class="container mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-dark fw-bold">DANH SÁCH LOẠI SẢN PHẨM</h2>
         <a asp-action="Create" class="btn btn-success">
@@ -17,6 +25,7 @@
         <thead class="table-dark">
             <tr>
                 <th style="width: 80px;">ID</th>
+                <th style="width: 100px;" class="text-center">Hình ảnh</th>
                 <th>Tên loại sản phẩm</th>
                 <th>Mô tả</th>
                 <th style="width: 180px;" class="text-center">Hành động</th>
@@ -28,6 +37,32 @@
             {
                 <tr>
                     <td><strong>@item.Id</strong></td>
+                    <td class="text-center">
+                        @{
+                            var imgUrl = item.ImageUrl;
+                            if (string.IsNullOrEmpty(imgUrl))
+                            {
+                                var lower = item.Name?.ToLower() ?? "";
+                                if (lower.Contains("cà phê") || lower.Contains("coffee") || lower.Contains("phin"))
+                                {
+                                    imgUrl = "https://www.highlandscoffee.com.vn/vnt_upload/product/04_2023/PHIN_SUA_DA_5.1.png";
+                                }
+                                else if (lower.Contains("trà") || lower.Contains("tea"))
+                                {
+                                    imgUrl = "https://www.highlandscoffee.com.vn/vnt_upload/product/06_2023/TRA-SEN-VANG-CN-5.1.png";
+                                }
+                                else if (lower.Contains("freeze"))
+                                {
+                                    imgUrl = "https://www.highlandscoffee.com.vn/vnt_upload/product/06_2023/FREEZE-TRA-XANH-5.1.png";
+                                }
+                                else
+                                {
+                                    imgUrl = "https://www.highlandscoffee.com.vn/vnt_upload/product/CHANH_DAY_DA_VIEN.png";
+                                }
+                            }
+                        }
+                        <img src="@imgUrl" alt="@item.Name" style="width: 50px; height: 50px; object-fit: contain; border-radius: 50%; border: 1px dashed #b22830; background-color: #f9f9f9; padding: 2px;" />
+                    </td>
                     <td class="text-primary fw-semibold">@item.Name</td>
                     <td class="text-muted">@item.Description</td>
                     <td class="text-center">

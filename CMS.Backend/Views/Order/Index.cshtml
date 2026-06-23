@@ -50,18 +50,20 @@
                         }
                     </td>
                     <td class="text-center">
-                        <!-- Cập nhật trạng thái bằng Button Group tiện lợi -->
-                        <div class="btn-group btn-group-sm me-2 shadow-sm" role="group">
-                            <a href="@Url.Action("UpdateStatus", "Order", new { id = item.Id, status = 0 })" 
-                               class="btn btn-outline-warning text-dark @(item.Status == 0 ? "bg-warning text-dark fw-bold" : "")" 
-                               title="Chờ duyệt">Chờ</a>
-                            <a href="@Url.Action("UpdateStatus", "Order", new { id = item.Id, status = 1 })" 
-                               class="btn btn-outline-info text-dark @(item.Status == 1 ? "bg-info text-dark fw-bold" : "")" 
-                               title="Đang giao">Giao</a>
-                            <a href="@Url.Action("UpdateStatus", "Order", new { id = item.Id, status = 2 })" 
-                               class="btn btn-outline-success @(item.Status == 2 ? "bg-success text-white fw-bold" : "")" 
-                               title="Đã hoàn thành">Xong</a>
-                        </div>
+                        <!-- Cập nhật trạng thái bằng Dropdown Select -->
+                        <select class="form-select form-select-sm d-inline-block w-auto me-2 shadow-sm" 
+                                onchange="location.href='@Url.Action("UpdateStatus", "Order")?id=' + @item.Id + '&status=' + this.value">
+                            <!option value="0" @(item.Status == 0 ? "selected" : "")>Chờ duyệt</!option>
+                            <!option value="1" @(item.Status == 1 ? "selected" : "")>Đang giao</!option>
+                            <!option value="2" @(item.Status == 2 ? "selected" : "")>Đã xong</!option>
+                        </select>
+
+                        <!-- Nút xem chi tiết đơn hàng -->
+                        <a href="/OrderDetail?orderId=@item.Id" 
+                           class="btn btn-sm btn-info text-dark shadow-sm me-2" 
+                           title="Xem chi tiết đơn hàng">
+                            <i class="bi bi-eye"></i> Chi tiết
+                        </a>
 
                         <!-- Nút xóa đơn hàng -->
                         <a href="@Url.Action("Delete", "Order", new { id = item.Id })" 

@@ -1,4 +1,4 @@
-﻿/*Sinh vien:Ung Thị Thanh Thảo 
+/*Sinh vien:Ung Thị Thanh Thảo 
  Ma sv:2123110174
 Lop:CCQ2311E
 Mo ta: Thực hiện quản lý danh sách Sản phẩm
@@ -23,9 +23,17 @@ namespace CMS.Data.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
+        [Range(0, double.MaxValue)]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? SalePrice { get; set; }
+
         public int StockQuantity { get; set; }
 
         public string? ImageUrl { get; set; }
+
+        public bool IsNew { get; set; } = false;
+        public bool IsBestSeller { get; set; } = false;
+        public bool IsPromo { get; set; } = false;
 
         public int CategoryProductId { get; set; }
 

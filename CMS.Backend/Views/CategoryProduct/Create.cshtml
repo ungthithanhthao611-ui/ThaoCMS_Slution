@@ -11,7 +11,7 @@
             <h5 class="mb-0 fw-bold"><i class="bi bi-plus-circle"></i> THÊM LOẠI SẢN PHẨM MỚI</h5>
         </div>
         <div class="card-body p-4">
-            <form asp-action="Create" method="post">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Tên loại sản phẩm:</label>
                     <input asp-for="Name" class="form-control form-control-lg" placeholder="Nhập tên loại sản phẩm (ví dụ: Điện tử, Điện thoại...)" required />
@@ -31,7 +31,12 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Hình ảnh đại diện (Tùy chọn):</label>
+                    <label class="form-label fw-bold">Tải lên hình ảnh đại diện:</label>
+                    <input type="file" name="uploadImage" class="form-control" accept="image/*" />
+                    <small class="text-muted">Chọn tệp hình ảnh từ máy tính.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Hoặc nhập link hình ảnh (URL):</label>
                     <input asp-for="ImageUrl" class="form-control" placeholder="Nhập đường dẫn hình ảnh (URL)..." />
                 </div>
                 <div class="mb-3">

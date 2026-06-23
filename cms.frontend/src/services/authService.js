@@ -21,6 +21,28 @@ const authService = {
             console.error('Lỗi khi đăng nhập:', error);
             throw error;
         }
+    },
+
+    // Gọi API Yêu cầu gửi OTP quên mật khẩu
+    forgotPassword: async (email) => {
+        try {
+            const response = await axiosClient.post('/Auth/ForgotPassword', { email });
+            return response;
+        } catch (error) {
+            console.error('Lỗi khi yêu cầu OTP:', error);
+            throw error;
+        }
+    },
+
+    // Gọi API Xác thực OTP và đặt lại mật khẩu mới
+    resetPassword: async (email, otp, newPassword) => {
+        try {
+            const response = await axiosClient.post('/Auth/ResetPassword', { email, otp, newPassword });
+            return response;
+        } catch (error) {
+            console.error('Lỗi khi đặt lại mật khẩu:', error);
+            throw error;
+        }
     }
 };
 

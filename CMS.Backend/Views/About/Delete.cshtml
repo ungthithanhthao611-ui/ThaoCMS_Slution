@@ -1,0 +1,49 @@
+@model CMS.Data.Entities.About
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Xác nhận xóa phân khu giới thiệu";
+}
+
+<div class="container mt-4">
+    <h2 class="text-danger">XÁC NHẬN XÓA PHÂN KHU GIỚI THIỆU</h2>
+    <hr />
+    
+    <div class="alert alert-danger fw-bold">
+        ⚠️ Bạn có chắc chắn muốn xóa phân khu giới thiệu này khỏi trang "Về chúng tôi"? Hành động này không thể hoàn tác!
+    </div>
+
+    <div class="card p-4 mb-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-3 fw-bold text-muted">Phân khu (Section):</dt>
+            <dd class="col-sm-9 fw-bold">@Model.SectionName</dd>
+
+            <dt class="col-sm-3 fw-bold text-muted">Tiêu đề chính:</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3 fw-bold text-muted">Tiêu đề phụ:</dt>
+            <dd class="col-sm-9 text-muted">@Model.Subtitle</dd>
+
+            <dt class="col-sm-3 fw-bold text-muted">Nội dung:</dt>
+            <dd class="col-sm-9">@Model.Content</dd>
+
+            <dt class="col-sm-3 fw-bold text-muted">Ảnh minh họa:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" style="max-height: 120px; border-radius: 8px; border: 1px solid #ddd;" alt="Delete confirm image" />
+                }
+                else
+                {
+                    <span class="text-danger">Không có ảnh</span>
+                }
+            </dd>
+        </dl>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger px-4">Xác nhận xóa bỏ</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+    </form>
+</div>

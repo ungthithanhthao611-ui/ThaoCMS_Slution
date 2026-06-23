@@ -59,7 +59,9 @@ namespace CMS.Backend.Controllers
                 return View(model);
             }
 
-            // 2. Lưu User mới vào Database (ở Buổi 4 lưu mật khẩu thô dạng Text để dễ kiểm chứng)
+            // 2. Mã hóa mật khẩu và lưu User mới vào Database
+            model.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.PasswordHash);
+
             _context.Users.Add(model); // Đưa vào hàng chờ tracking
             _context.SaveChanges();    // Thực thi lệnh INSERT INTO Users
             return RedirectToAction("Index"); // Điều hướng quay lại danh sách
@@ -94,7 +96,7 @@ namespace CMS.Backend.Controllers
             // - Nếu ô mật khẩu mới để trống: thì giữ nguyên mật khẩu cũ từ Database
             if (!string.IsNullOrEmpty(NewPassword))
             {
-                model.PasswordHash = NewPassword; // Đổi sang mật khẩu mới
+                model.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword); // Đổi sang mật khẩu mới (đã mã hóa)
             }
             else
             {
