@@ -5,7 +5,7 @@
     ViewData["Title"] = "Chỉnh sửa sản phẩm";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="card shadow border-0">
         <div class="card-header bg-warning text-dark py-3">
             <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square"></i> CHỈNH SỬA SẢN PHẨM</h5>
@@ -29,7 +29,7 @@
                         </div>
                     </div>
 
-                    <!-- Cột bên phải: Giá, Số lượng, Loại sản phẩm và Ảnh đại diện -->
+                    <!-- Cột bên phải: Giá, Số lượng, Loại sản phẩm, Trạng thái và Ảnh -->
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Loại sản phẩm:</label>
@@ -39,14 +39,36 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Giá bán (VNĐ):</label>
-                            <input asp-for="Price" type="number" step="1000" class="form-control" required />
+                            <input asp-for="Price" type="number" id="product-price" step="1000" class="form-control" required />
                             <span asp-validation-for="Price" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Giá khuyến mãi (VNĐ - bỏ trống nếu không sale):</label>
-                            <input asp-for="SalePrice" type="number" step="1000" class="form-control" />
+                        <!-- Khu vực trạng thái -->
+                        <div class="mb-3 p-3 bg-light rounded border">
+                            <label class="form-label fw-bold mb-2 text-secondary">Trạng thái sản phẩm:</label>
+                            
+                            <div class="form-check form-switch mb-2">
+                                <input asp-for="IsNew" class="form-check-input" type="checkbox" role="switch">
+                                <label class="form-check-label fw-semibold" for="IsNew">Mới (New)</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input asp-for="IsBestSeller" class="form-check-input" type="checkbox" role="switch">
+                                <label class="form-check-label fw-semibold" for="IsBestSeller">Bán chạy</label>
+                            </div>
+
+                            <div class="form-check form-switch">
+                                <input asp-for="IsPromo" class="form-check-input" type="checkbox" role="switch">
+                                <label class="form-check-label fw-semibold text-danger" for="IsPromo">Khuyến mãi (Sale)</label>
+                            </div>
+                        </div>
+
+                        <!-- Ô nhập giá khuyến mãi, ẩn mặc định và chỉ hiện khi IsPromo được tick -->
+                        <div class="mb-3 d-none" id="promo-price-group">
+                            <label class="form-label fw-bold text-danger">Giá khuyến mãi (VNĐ):</label>
+                            <input asp-for="SalePrice" type="number" step="1000" class="form-control" placeholder="Ví dụ: 13000000" />
                             <span asp-validation-for="SalePrice" class="text-danger"></span>
+                            <small class="text-muted">Giá khuyến mãi phải nhỏ hơn giá bán gốc.</small>
                         </div>
 
                         <div class="mb-3">
@@ -77,7 +99,7 @@
 
                         <hr />
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-warning btn-lg fw-semibold text-dark">
+                            <button type="submit" class="btn btn-warning btn-lg fw-semibold text-dark" id="btn-submit">
                                 <i class="bi bi-check-circle"></i> Cập nhật thay đổi
                             </button>
                             <a asp-action="Index" class="btn btn-secondary">
@@ -90,3 +112,54 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var promoSwitch = $('#IsPromo');
+            var promoGroup = $('#promo-price-group');
+            var salePriceInput = $('#SalePrice');
+
+            // Xử lý ẩn hiện ô nhập giá khuyến mãi
+            function togglePromoGroup() {
+                if (promoSwitch.is(':checked')) {
+                    promoGroup.removeClass('d-none');
+                    salePriceInput.prop('required', true);
+                } else {
+                    promoGroup.addClass('d-none');
+                    salePriceInput.prop('required', false);
+                }
+            }
+
+            promoSwitch.on('change', function() {
+                togglePromoGroup();
+                if (!promoSwitch.is(':checked')) {
+                    salePriceInput.val('');
+                }
+            });
+
+            // Chạy kiểm tra ngay khi load
+            togglePromoGroup();
+
+            // Validate logic giá trước khi submit
+            $('#btn-submit').on('click', function(e) {
+                var price = parseFloat($('#product-price').val());
+                var isPromo = promoSwitch.is(':checked');
+                var salePrice = parseFloat(salePriceInput.val());
+
+                if (isPromo) {
+                    if (isNaN(salePrice) || salePrice <= 0) {
+                        alert("Vui lòng nhập giá khuyến mãi hợp lệ!");
+                        e.preventDefault();
+                        return;
+                    }
+                    if (salePrice >= price) {
+                        alert("Giá khuyến mãi phải nhỏ hơn giá bán gốc (" + price.toLocaleString('vi-VN') + " đ)!");
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            });
+        });
+    </script>
+}

@@ -12,10 +12,11 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import OrderSuccess from './pages/OrderSuccess';
-import PostDetail from './pages/PostDetail';
-import NewsPage from './pages/NewsPage';
+import BlogDetail from './pages/blog-detail/index';
+import Blog from './pages/blog/index';
 import About from './pages/About';
 import Search from './pages/Search';
+import ForgotPassword from './pages/ForgotPassword';
 import { CartProvider } from './context/CartContext';
 import './assets/css/App.css';
 
@@ -37,8 +38,9 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/order-success" element={<OrderSuccess />} />
-              <Route path="/post/:id" element={<PostDetail />} />
-              <Route path="/tin-tuc" element={<NewsPage />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/post/:id" element={<BlogDetail />} />
+              <Route path="/tin-tuc" element={<Blog />} />
               <Route path="/gioi-thieu" element={<About />} />
             </Routes>
           </div>

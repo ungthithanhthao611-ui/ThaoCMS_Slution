@@ -11,6 +11,12 @@ const blogService = {
     getAllPosts: () => {
         const url = '/Posts'; // Khớp với Route quản lý bài viết ở Backend
         return axiosClient.get(url);
+    },
+
+    // Hàm gọi API lấy 3 bài viết mới nhất
+    getLatestPosts: () => {
+        const url = '/Posts/latest';
+        return axiosClient.get(url);
     }
 };
 

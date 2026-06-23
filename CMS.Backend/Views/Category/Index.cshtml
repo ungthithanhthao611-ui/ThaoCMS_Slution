@@ -5,15 +5,15 @@
 @{
     Layout = "_LayoutAdmin";
     // ViewData["Title"] dùng để truyền tiêu đề trang lên Layout chung (Layout.cshtml)
-    ViewData["Title"] = "Danh sách danh mục";
+    ViewData["Title"] = "Danh sách danh mục tin tức";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary fw-bold">DANH SÁCH DANH MỤC</h2>
+        <h2 class="text-primary fw-bold">DANH SÁCH DANH MỤC TIN TỨC</h2>
         @* Thẻ <a> sử dụng thuộc tính (Tag Helper) 'asp-action="Create"' để tạo link trỏ tới hàm Create trong CategoryController *@
         <a asp-action="Create" class="btn btn-success">
-            + Thêm danh mục mới
+            + Thêm danh mục tin tức mới
         </a>
     </div>
     <hr />
@@ -22,7 +22,7 @@
         <thead class="table-dark">
             <tr>
                 <th>Id</th>
-                <th>Tên danh mục</th>
+                <th>Tên danh mục tin tức</th>
                 <th>Mô tả</th>
                 <th style="width:180px;">Thao tác</th>
             </tr>

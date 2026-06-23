@@ -143,5 +143,54 @@ namespace CMS.Backend.Controllers
             }
             return RedirectToAction("Index");
         }
+
+        // ==========================================
+        // 5. CẬP NHẬT TRẠNG THÁI SẢN PHẨM NHANH (AJAX)
+        // ==========================================
+        [HttpPost]
+        public IActionResult ToggleStatus(int id, string type, decimal? salePrice = null)
+        {
+            var product = _context.Products.Find(id);
+            if (product == null) return NotFound(new { success = false, message = "Không tìm thấy sản phẩm." });
+
+            if (type == "IsNew")
+            {
+                product.IsNew = !product.IsNew;
+            }
+            else if (type == "IsBestSeller")
+            {
+                product.IsBestSeller = !product.IsBestSeller;
+            }
+            else if (type == "IsPromo")
+            {
+                product.IsPromo = !product.IsPromo;
+                if (product.IsPromo)
+                {
+                    if (salePrice.HasValue && salePrice.Value > 0)
+                    {
+                        product.SalePrice = salePrice;
+                    }
+                    else
+                    {
+                        // Mặc định giảm 10% nếu không nhập
+                        product.SalePrice = Math.Round(product.Price * 0.9m);
+                    }
+                }
+                else
+                {
+                    product.SalePrice = null;
+                }
+            }
+
+            _context.SaveChanges();
+            return Json(new { 
+                success = true, 
+                isNew = product.IsNew, 
+                isBest = product.IsBestSeller, 
+                isPromo = product.IsPromo, 
+                salePrice = product.SalePrice,
+                price = product.Price
+            });
+        }
     }
 }

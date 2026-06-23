@@ -2,9 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { IMAGE_BASE } from '../api/axiosClient';
 
-const PostCard = ({ post, index = 0 }) => {
+const PostCard = ({ post, index = 0, className = "col-md-4 mb-4" }) => {
     return (
-        <div className="col-md-4 mb-4 animated fadeInUp" style={{ animationDelay: `${index * 0.15}s` }}>
+        <div className={`${className} animated fadeInUp`} style={{ animationDelay: `${index * 0.15}s` }}>
             <div className="hc-news-card card h-100" 
                  style={{ 
                      borderRadius: '12px', 
@@ -32,7 +32,7 @@ const PostCard = ({ post, index = 0 }) => {
                 </div>
                 <div className="card-body px-3 py-3">
                     <div className="hc-news-date text-muted" style={{ fontSize: '0.85rem' }}>
-                        <i className="fa-regular fa-calendar mr-2"></i>
+                        <i className="fa fa-calendar mr-2"></i>
                         {new Date(post.createdDate).toLocaleDateString('vi-VN')}
                     </div>
                     <h5 className="mt-2 mb-2">

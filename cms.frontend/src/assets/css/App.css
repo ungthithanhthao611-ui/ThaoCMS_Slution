@@ -661,8 +661,22 @@ div.block-category,
 /* ==============================================================
    HIỆU ỨNG MENU NAV ITEM
    ============================================================== */
+.tpmenuhead ul {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 15px !important; /* Tạo khoảng cách đều đặn giữa các mục */
+}
+
+.tpmenuhead ul > li {
+    margin-right: 0 !important; /* Xoá margin cũ của style gốc để dùng gap */
+    display: inline-block !important;
+}
+
 .tpmenuhead ul > li > a {
     position: relative;
+    white-space: nowrap !important; /* Ngăn chặn tuyệt đối việc xuống dòng chữ */
+    font-size: 13px !important;     /* Tối ưu cỡ chữ cho cân đối */
 }
 
 .tpmenuhead ul > li > a::after {
@@ -768,8 +782,16 @@ div.block-category,
   -webkit-box-orient: vertical;  
   overflow: hidden;
 }
+/* Cố định Header ở trên cùng khi cuộn trang */
+#vnt-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10000 !important;
+    background-color: #b22830 !important; /* Giữ màu đỏ thương hiệu Highlands Coffee */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
 
-/* Ép kiểu font cho nội dung bài viết HTML từ CKEditor / Database */
-.post-content, .post-content * {
-    font-family: 'Inter', 'Arial', sans-serif !important;
+/* Khắc phục lỗi position: sticky bị vô hiệu hóa do thuộc tính overflow: hidden từ các thẻ cha của giao diện gốc */
+html, body, #root, #vnt-wrapper, #vnt-container {
+    overflow: visible !important;
 }

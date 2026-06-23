@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { API_BASE } from '../api/axiosClient';
+import axiosClient, { API_BASE } from '../api/axiosClient';
+
+const HIGHLANDS_STORES = [
+    { id: 1, district: 'Quận 1', name: 'Highlands Coffee Nguyễn Huệ', address: '65 Nguyễn Huệ, P. Bến Nghé, Quận 1, TP.HCM' },
+    { id: 2, district: 'Quận 1', name: 'Highlands Coffee Đồng Khởi', address: '42 Đồng Khởi, P. Bến Nghé, Quận 1, TP.HCM' },
+    { id: 3, district: 'Quận 3', name: 'Highlands Coffee Võ Văn Tần', address: '36 Võ Văn Tần, P. 6, Quận 3, TP.HCM' },
+    { id: 4, district: 'Quận 3', name: 'Highlands Coffee CMT8', address: '164 Cách Mạng Tháng 8, P. 10, Quận 3, TP.HCM' },
+    { id: 5, district: 'Quận 5', name: 'Highlands Coffee Trần Hưng Đạo', address: '258 Trần Hưng Đạo, P. 11, Quận 5, TP.HCM' },
+    { id: 6, district: 'Quận 7', name: 'Highlands Coffee SC VivoCity', address: '1058 Nguyễn Văn Linh, Quận 7, TP.HCM' },
+    { id: 7, district: 'Quận 10', name: 'Highlands Coffee Sư Vạn Hạnh', address: '371 Sư Vạn Hạnh, P. 12, Quận 10, TP.HCM' },
+    { id: 8, district: 'Bình Thạnh', name: 'Highlands Coffee Landmark 81', address: '720A Điện Biên Phủ, P. 22, Q. Bình Thạnh, TP.HCM' },
+    { id: 9, district: 'Tân Bình', name: 'Highlands Coffee Trường Chinh', address: '197 Trường Chinh, P. 12, Q. Tân Bình, TP.HCM' },
+    { id: 10, district: 'Gò Vấp', name: 'Highlands Coffee Nguyễn Kiệm', address: '262 Nguyễn Kiệm, P. 3, Q. Gò Vấp, TP.HCM' },
+];
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -9,6 +22,8 @@ const Header = () => {
     const [customer, setCustomer] = useState(null);
     const [menus, setMenus] = useState([]);
     const [subMenus, setSubMenus] = useState([]);
+    const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
+    const [storeSearch, setStoreSearch] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
     const path = location.pathname;
@@ -46,10 +61,9 @@ const Header = () => {
         }
     }, []);
 
-    // Gọi API lấy danh sách menu từ database
+    // Gọi API lấy danh sách menu từ database bằng axiosClient
     useEffect(() => {
-        fetch(`${API_BASE}/api/menus`)
-            .then(res => res.json())
+        axiosClient.get('/menus')
             .then(data => {
                 // Tách menu cha (parentId == null) và menu con
                 const parents = data.filter(m => m.parentId === null || m.parentId === undefined);
@@ -173,13 +187,13 @@ const Header = () => {
                                                         <Link to="/profile" style={{color: '#fff', textDecoration: 'none', fontSize: '24px'}}>
                                                             <i className="fa fa-user-circle-o"></i>
                                                         </Link>
-                                                        <div style={{color: 'white', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', marginTop: '2px'}}>{customer.fullName}</div>
-                                                        <a href="#" onClick={handleLogout} style={{color: 'rgba(255,255,255,0.7)', fontSize: '10px', textDecoration: 'underline'}}>Đăng xuất</a>
+                                                        <div style={{color: 'white', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', marginTop: '2px', whiteSpace: 'nowrap'}}>{customer.fullName}</div>
+                                                        <a href="#" onClick={handleLogout} style={{color: 'rgba(255,255,255,0.7)', fontSize: '10px', textDecoration: 'underline', whiteSpace: 'nowrap'}}>Đăng xuất</a>
                                                     </div>
                                                 ) : (
                                                     <Link to="/login" style={{color: 'white', textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                                                         <i className="fa fa-user-circle-o" style={{fontSize: '24px'}}></i>
-                                                        <div style={{fontSize: '10px', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '1px'}}>Đăng nhập</div>
+                                                        <div style={{fontSize: '10px', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '1px', whiteSpace: 'nowrap'}}>Đăng nhập</div>
                                                     </Link>
                                                 )}
                                             </div>
@@ -201,16 +215,16 @@ const Header = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div style={{ fontSize: '10px', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '1px' }}>Giỏ hàng</div>
+                                                <div style={{ fontSize: '10px', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '1px', whiteSpace: 'nowrap' }}>Giỏ hàng</div>
                                             </Link>
 
                                         </div>
                                         <div className="tcol hidden-xs hidden-sm">
-                                            <div className="tpfindhead">
-                                                <Link to="/">
-                                                    <i className="fa fa-map-marker"></i>
-                                                    <span>Tìm kiếm cửa hàng</span>
-                                                </Link>
+                                            <div className="tpfindhead" style={{ cursor: 'pointer' }} onClick={() => setIsStoreModalOpen(true)}>
+                                                <a href="#" onClick={(e) => e.preventDefault()} style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                                                    <i className="fa fa-map-marker" style={{ fontSize: '18px', color: '#fff' }}></i>
+                                                    <span style={{ color: '#fff' }}>Tìm kiếm cửa hàng</span>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -219,32 +233,170 @@ const Header = () => {
                         </div>
                     </div>
                 </div>
-                {isMenuOpen && (() => {
-                    const activeMenu = menus.find(m => m.id === isMenuOpen);
-                    const children = activeMenu ? getChildren(activeMenu.id) : [];
-                    return children.length > 0 ? (
-                        <div
-                            className="mega-menu-fullwidth"
-                            style={{ paddingTop: '20px', marginTop: '-20px', position: 'relative', zIndex: 999 }}
-                            onMouseEnter={() => {
-                                if (closeTimeout) {
-                                    clearTimeout(closeTimeout);
-                                    setCloseTimeout(null);
-                                }
-                            }}
-                            onMouseLeave={handleMouseLeaveMenu}
-                        >
-                            <div className="row-menu" style={{ justifyContent: 'center' }}>
-                                {children.map(child => (
-                                    <div className="col-menu" key={child.id}>
-                                        <h4><Link to={child.linkUrl}>{child.name.toUpperCase()}</Link></h4>
-                                    </div>
-                                ))}
+            </div>
+
+            {/* Modal Tìm kiếm cửa hàng */}
+            {isStoreModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10001,
+                    padding: '20px',
+                    boxSizing: 'border-box'
+                }}
+                onClick={() => setIsStoreModalOpen(false)}
+                >
+                    <div style={{
+                        backgroundColor: '#fff',
+                        borderRadius: '20px',
+                        width: '100%',
+                        maxWidth: '550px',
+                        maxHeight: '85vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                        boxShadow: '0 15px 40px rgba(0,0,0,0.2)',
+                        boxSizing: 'border-box'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div style={{
+                            padding: '20px 25px',
+                            background: 'linear-gradient(135deg, #b22830, #8c1e24)',
+                            color: 'white',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <h4 style={{ margin: 0, fontWeight: '800', fontSize: '1.25rem', letterSpacing: '0.5px' }}>
+                                📍 Hệ thống cửa hàng Highlands
+                            </h4>
+                            <button 
+                                onClick={() => setIsStoreModalOpen(false)}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'white',
+                                    fontSize: '24px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    outline: 'none'
+                                }}
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        {/* Search Bar inside Modal */}
+                        <div style={{ padding: '20px 25px 10px' }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '30px',
+                                padding: '8px 16px',
+                                backgroundColor: '#f8fafc'
+                            }}>
+                                <i className="fa fa-search" style={{ color: '#94a3b8', marginRight: '10px' }}></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Tìm theo tên cửa hàng hoặc quận (VD: Quận 1)..."
+                                    value={storeSearch}
+                                    onChange={(e) => setStoreSearch(e.target.value)}
+                                    style={{
+                                        border: 'none',
+                                        background: 'transparent',
+                                        outline: 'none',
+                                        width: '100%',
+                                        fontSize: '0.9rem',
+                                        color: '#334155'
+                                    }}
+                                />
                             </div>
                         </div>
-                    ) : null;
-                })()}
-            </div>
+
+                        {/* Store List */}
+                        <div style={{
+                            overflowY: 'auto',
+                            padding: '10px 25px 25px',
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px'
+                        }}>
+                            {HIGHLANDS_STORES.filter(store => 
+                                store.name.toLowerCase().includes(storeSearch.toLowerCase()) ||
+                                store.address.toLowerCase().includes(storeSearch.toLowerCase())
+                            ).map(store => (
+                                <div 
+                                    key={store.id} 
+                                    style={{
+                                        padding: '16px',
+                                        borderRadius: '16px',
+                                        border: '1px solid #e2e8f0',
+                                        backgroundColor: '#fff',
+                                        transition: 'all 0.2s',
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: '12px'
+                                    }}
+                                    className="store-item-hover"
+                                >
+                                    <div style={{
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#fff5f5',
+                                        color: '#b22830',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '16px',
+                                        flexShrink: 0
+                                    }}>
+                                        <i className="fa fa-map-marker"></i>
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '0.95rem' }}>{store.name}</div>
+                                        <div style={{ color: '#64748b', fontSize: '0.82rem', marginTop: '4px', lineHeight: '1.4' }}>{store.address}</div>
+                                        <div style={{ marginTop: '8px' }}>
+                                            <a 
+                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name + " " + store.address)}`}
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    fontSize: '0.78rem',
+                                                    color: '#b22830',
+                                                    fontWeight: '700',
+                                                    textDecoration: 'none'
+                                                }}
+                                            >
+                                                Xem bản đồ <i className="fa fa-external-link"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {HIGHLANDS_STORES.filter(store => 
+                                store.name.toLowerCase().includes(storeSearch.toLowerCase()) ||
+                                store.address.toLowerCase().includes(storeSearch.toLowerCase())
+                            ).length === 0 && (
+                                <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
+                                    Không tìm thấy cửa hàng nào khớp với tìm kiếm.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

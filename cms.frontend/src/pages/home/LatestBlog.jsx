@@ -9,10 +9,8 @@ const LatestBlog = () => {
     useEffect(() => {
         const loadLatestPosts = async () => {
             try {
-                const data = await blogService.getAllPosts();
-                // Lấy 3 bài viết mới nhất
-                const latest = data.slice(0, 3);
-                setPosts(latest);
+                const data = await blogService.getLatestPosts();
+                setPosts(data);
             } catch (error) {
                 console.error("Lỗi tải bài viết tin tức mới nhất:", error);
             } finally {

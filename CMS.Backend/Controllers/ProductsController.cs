@@ -65,7 +65,8 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> GetLatest()
         {
             var products = await _context.Products
-                .OrderByDescending(p => p.Id)
+                .OrderByDescending(p => p.IsNew) // Ưu tiên các sản phẩm được đánh dấu "Mới (New)"
+                .ThenByDescending(p => p.Id)
                 .Take(3)
                 .Select(p => new {
                     p.Id,
@@ -73,7 +74,10 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.SalePrice,
                     p.ImageUrl,
-                    p.StockQuantity
+                    p.StockQuantity,
+                    p.IsNew,
+                    p.IsBestSeller,
+                    p.IsPromo
                 })
                 .ToListAsync();
 
@@ -84,9 +88,10 @@ namespace CMS.Backend.Controllers
         [HttpGet("sale")]
         public async Task<IActionResult> GetSale()
         {
+            // Ưu tiên lấy sản phẩm được tick Khuyến mãi (IsPromo = true)
             var products = await _context.Products
-                .Where(p => p.SalePrice != null && p.SalePrice > 0 && p.SalePrice < p.Price)
-                .OrderByDescending(p => p.Price - p.SalePrice) // Ưu tiên SP giảm nhiều nhất
+                .Where(p => p.IsPromo == true && p.SalePrice != null && p.SalePrice > 0 && p.SalePrice < p.Price)
+                .OrderByDescending(p => p.Price - p.SalePrice)
                 .Take(3)
                 .Select(p => new {
                     p.Id,
@@ -94,11 +99,35 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.SalePrice,
                     p.ImageUrl,
-                    p.StockQuantity
+                    p.StockQuantity,
+                    p.IsNew,
+                    p.IsBestSeller,
+                    p.IsPromo
                 })
                 .ToListAsync();
 
-            // Nếu chưa có sản phẩm sale, fallback lấy sản phẩm mới nhất
+            // Nếu không có sản phẩm nào được tick IsPromo, fallback lấy sản phẩm có SalePrice bất kỳ
+            if (!products.Any())
+            {
+                products = await _context.Products
+                    .Where(p => p.SalePrice != null && p.SalePrice > 0 && p.SalePrice < p.Price)
+                    .OrderByDescending(p => p.Price - p.SalePrice)
+                    .Take(3)
+                    .Select(p => new {
+                        p.Id,
+                        p.Name,
+                        p.Price,
+                        p.SalePrice,
+                        p.ImageUrl,
+                        p.StockQuantity,
+                        p.IsNew,
+                        p.IsBestSeller,
+                        p.IsPromo
+                    })
+                    .ToListAsync();
+            }
+
+            // Nếu vẫn chưa có, lấy sản phẩm mới nhất làm fallback
             if (!products.Any())
             {
                 var fallback = await _context.Products
@@ -110,7 +139,10 @@ namespace CMS.Backend.Controllers
                         p.Price,
                         p.SalePrice,
                         p.ImageUrl,
-                        p.StockQuantity
+                        p.StockQuantity,
+                        p.IsNew,
+                        p.IsBestSeller,
+                        p.IsPromo
                     })
                     .ToListAsync();
                 return Ok(fallback);
@@ -123,49 +155,88 @@ namespace CMS.Backend.Controllers
         [HttpGet("hot")]
         public async Task<IActionResult> GetHot()
         {
+            // Ưu tiên sản phẩm được tick "Bán chạy" (IsBestSeller = true)
+            var bestSellerProducts = await _context.Products
+                .Where(p => p.IsBestSeller == true)
+                .OrderByDescending(p => p.Id)
+                .Take(3)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Price,
+                    p.SalePrice,
+                    p.ImageUrl,
+                    p.StockQuantity,
+                    p.IsNew,
+                    p.IsBestSeller,
+                    p.IsPromo
+                })
+                .ToListAsync();
+
+            if (bestSellerProducts.Count >= 3)
+            {
+                return Ok(bestSellerProducts);
+            }
+
+            // Fallback: Nếu không đủ 3 sản phẩm được tích chọn, lấy thêm sản phẩm bán chạy theo đơn hàng thực tế
             var hotProductIds = await _context.OrderDetails
                 .GroupBy(od => od.ProductId)
                 .OrderByDescending(g => g.Sum(x => x.Quantity))
                 .Select(g => g.Key)
-                .Take(3)
                 .ToListAsync();
 
-            var productsList = new List<Product>();
+            var excludeIds = bestSellerProducts.Select(p => p.Id).ToList();
+            var productsList = new List<object>(bestSellerProducts);
 
             if (hotProductIds.Any())
             {
                 var dbProducts = await _context.Products
-                    .Where(p => hotProductIds.Contains(p.Id))
+                    .Where(p => hotProductIds.Contains(p.Id) && !excludeIds.Contains(p.Id))
+                    .Select(p => new {
+                        p.Id,
+                        p.Name,
+                        p.Price,
+                        p.SalePrice,
+                        p.ImageUrl,
+                        p.StockQuantity,
+                        p.IsNew,
+                        p.IsBestSeller,
+                        p.IsPromo
+                    })
                     .ToListAsync();
                 
                 foreach (var id in hotProductIds)
                 {
+                    if (productsList.Count >= 3) break;
                     var p = dbProducts.FirstOrDefault(x => x.Id == id);
                     if (p != null) productsList.Add(p);
                 }
             }
 
+            // Fallback cuối cùng nếu vẫn chưa đủ 3
             if (productsList.Count < 3)
             {
                 var remainingCount = 3 - productsList.Count;
-                var excludeIds = productsList.Select(p => p.Id).ToList();
+                var currentIds = productsList.Select(p => ((dynamic)p).Id).Cast<int>().ToList();
                 var fallbackProducts = await _context.Products
-                    .Where(p => !excludeIds.Contains(p.Id))
+                    .Where(p => !currentIds.Contains(p.Id))
                     .Take(remainingCount)
+                    .Select(p => new {
+                        p.Id,
+                        p.Name,
+                        p.Price,
+                        p.SalePrice,
+                        p.ImageUrl,
+                        p.StockQuantity,
+                        p.IsNew,
+                        p.IsBestSeller,
+                        p.IsPromo
+                    })
                     .ToListAsync();
                 productsList.AddRange(fallbackProducts);
             }
 
-            var result = productsList.Select(p => new {
-                p.Id,
-                p.Name,
-                p.Price,
-                p.SalePrice,
-                p.ImageUrl,
-                p.StockQuantity
-            });
-
-            return Ok(result);
+            return Ok(productsList);
         }
 
         // [BUỔI 6] 2. Định nghĩa đường dẫn chứa tham số động: api/products/category/{categoryProductId}

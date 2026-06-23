@@ -101,11 +101,13 @@ namespace CMS.Backend.Controllers
                             .Where(od => od.OrderId == newOrder.Id)
                             .ToListAsync();
                         await _emailService.SendOrderConfirmationEmailAsync(newOrder, customer, details);
+                        // Gửi thông báo đến Admin
+                        await _emailService.SendAdminNewOrderNotificationEmailAsync(newOrder, customer, details);
                     }
                 }
                 catch (Exception emailEx)
                 {
-                    Console.WriteLine($"Lỗi gửi email xác nhận đơn hàng: {emailEx.Message}");
+                    Console.WriteLine($"Lỗi gửi email xác nhận hoặc thông báo đơn hàng: {emailEx.Message}");
                 }
 
                 // [BUỔI 6] Bước C: Trả về mã thành công 201 Created và gửi ngược lại mã ID đơn hàng vừa tạo
@@ -140,6 +142,7 @@ namespace CMS.Backend.Controllers
                     Items = o.OrderDetails != null ? o.OrderDetails.Select(od => new {
                         od.ProductId,
                         ProductName = od.Product != null ? od.Product.Name : "",
+                        ProductImageUrl = od.Product != null ? od.Product.ImageUrl : "",
                         od.Quantity,
                         od.UnitPrice
                     }).ToList() : null

@@ -33,24 +33,39 @@ const Login = () => {
 
     return (
         <div style={{
-            minHeight: '75vh',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            overflowY: 'auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("https://images.unsplash.com/photo-1497935586351-b67a49e012bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1951&q=80")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            padding: '40px 20px'
+            padding: '20px',
+            boxSizing: 'border-box',
+            zIndex: 9999
         }}>
             <div style={{
                 background: 'rgba(255, 255, 255, 0.95)',
                 padding: '40px',
-                borderRadius: '12px',
-                boxShadow: '0 15px 30px rgba(0,0,0,0.2)',
+                borderRadius: '16px',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
                 width: '100%',
                 maxWidth: '420px',
-                backdropFilter: 'blur(10px)'
+                backdropFilter: 'blur(10px)',
+                margin: 'auto',
+                boxSizing: 'border-box'
             }}>
+                <div style={{ marginBottom: '20px' }}>
+                    <Link to="/" style={{ color: '#b22830', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
+                        <i className="fa fa-arrow-left" style={{ marginRight: '6px' }}></i> Quay về Trang Chủ
+                    </Link>
+                </div>
+
                 <h2 style={{ color: '#b22830', fontWeight: 'bold', textAlign: 'center', marginBottom: '30px', letterSpacing: '1px' }}>ĐĂNG NHẬP</h2>
                 
                 {error && <div style={{background: '#f8d7da', color: '#721c24', padding: '10px', borderRadius: '5px', marginBottom: '20px', textAlign: 'center', fontSize: '14px'}}>{error}</div>}
@@ -104,8 +119,11 @@ const Login = () => {
                         {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
                     </button>
                     
-                    <div style={{ textAlign: 'center', marginTop: '25px', fontSize: '14px', color: '#555' }}>
-                        Chưa có tài khoản? <Link to="/register" style={{ color: '#b22830', fontWeight: 'bold', textDecoration: 'none' }}>Đăng ký ngay</Link>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '25px', fontSize: '14px' }}>
+                        <Link to="/forgot-password" style={{ color: '#b22830', textDecoration: 'none', fontWeight: 'bold' }}>Quên mật khẩu?</Link>
+                        <span style={{ color: '#555' }}>
+                            Chưa có tài khoản? <Link to="/register" style={{ color: '#b22830', fontWeight: 'bold', textDecoration: 'none' }}>Đăng ký</Link>
+                        </span>
                     </div>
                 </form>
             </div>

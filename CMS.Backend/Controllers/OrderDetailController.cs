@@ -22,14 +22,22 @@ namespace CMS.Backend.Controllers
             _context = context;
         }
 
-        //index: Hiển thị danh sách chi tiết đơn hàng
-        public IActionResult Index()
+        //index: Hiển thị danh sách chi tiết đơn hàng (hỗ trợ lọc theo orderId)
+        public IActionResult Index(int? orderId = null)
         {
-            var data = _context.OrderDetails
+            var query = _context.OrderDetails
                                .Include(od => od.Product)
                                .Include(od => od.Order)
                                    .ThenInclude(o => o.Customer)
-                               .ToList();
+                               .AsQueryable();
+
+            if (orderId.HasValue)
+            {
+                query = query.Where(od => od.OrderId == orderId.Value);
+                ViewBag.OrderId = orderId.Value;
+            }
+
+            var data = query.ToList();
             return View(data);
         }
     }

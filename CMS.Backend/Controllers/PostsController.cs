@@ -1,82 +1,102 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CMS.Data; 
+using CMS.Data;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CMS.Backend.Controllers
 {
-    // [BUỔI 6] Định nghĩa đường dẫn để gọi API. [controller] sẽ tự lấy tên là "Posts"
-    // Khi chạy, địa chỉ truy cập dữ liệu sẽ là: https://localhost:xxxx/api/posts
-    [Route("api/[controller]")] 
-
-    // [BUỔI 6] Đánh dấu đây là một API Controller để hệ thống hỗ trợ các tính năng tự động kiểm tra dữ liệu đầu vào
-    [ApiController] 
-
-    // [BUỔI 6] API Controller phải kế thừa từ ControllerBase (thay vì kế thừa từ Controller như phân hệ MVC)
+    [Route("api/[controller]")]
+    [ApiController]
     public class PostsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        // [BUỔI 6] Hàm khởi tạo (Constructor): "Tiêm" ngữ cảnh dữ liệu SQL Server vào để sử dụng
         public PostsController(ApplicationDbContext context)
         {
-            _context = context; 
+            _context = context;
         }
 
-        // [BUỔI 6] 1. Chỉ định phương thức GET (Dùng để kéo dữ liệu từ cơ sở dữ liệu)
+        /// <summary>
+        /// API Endpoint 1: GET https://localhost:7111/api/Posts
+        /// Nhận tham số lọc động gửi từ { params: filters } của dịch vụ postService.js
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? categoryId)
         {
-            // Lấy toàn bộ dữ liệu từ bảng Posts số nhiều trong SQL Server
-            var posts = await _context.Posts
-                .OrderByDescending(p => p.Id) // Sắp xếp bài viết mới nhất lên đầu
-                .Select(p => new {            // "Gọt tỉa" dữ liệu: chỉ lấy những trường cần thiết ra trang chủ 
-                    p.Id, 
-                    p.Title, 
-                    p.ImageUrl, 
-                    p.CreatedDate,
-                    CategoryName = p.Category.Name // Kéo trực tiếp tên chuyên mục thay vì chỉ lấy mã ID cộc lốc 
-                })
-                .ToListAsync();
+            try
+            {
+                var query = _context.Posts.AsQueryable();
 
-            // Trả về kết quả cho Frontend kèm mã trạng thái HTTP 200 OK (Thành công)
-            return Ok(posts); 
+                if (categoryId.HasValue)
+                {
+                    query = query.Where(p => p.CategoryId == categoryId.Value);
+                }
+
+                query = query.OrderByDescending(p => p.CreatedDate);
+
+                var result = await query.ToListAsync();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi hệ thống SQL Server khi tải danh sách tin tức: {ex.Message}");
+            }
         }
 
-        // [BUỔI 6] 2. Định nghĩa đường dẫn chứa tham số động: api/posts/category/{categoryId}
-        [HttpGet("category/{categoryId}")] 
-        public async Task<IActionResult> GetByCategory(int categoryId)
-        {
-            // Lọc các bài viết có CategoryId trùng với ID truyền vào từ thanh URL
-            var posts = await _context.Posts
-                .Where(p => p.CategoryId == categoryId) 
-                .Select(p => new { 
-                    p.Id, 
-                    p.Title, 
-                    p.ImageUrl, 
-                    p.CreatedDate
-                })
-                .ToListAsync();
-
-            return Ok(posts); 
-        }
-
-        // [BUỔI 6] 3. Định nghĩa đường dẫn nhận ID trực tiếp: api/posts/{id}
-        [HttpGet("{id}")] 
+        /// <summary>
+        /// API Endpoint 2: GET https://localhost:7111/api/Posts/{id}
+        /// Truy vấn chi tiết một bài viết độc bản theo khóa chính ID phục vụ trang BlogDetail
+        /// </summary>
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetDetail(int id)
         {
-            // 3.1. Quét bảng Posts để tìm bài viết đầu tiên có Id khớp với tham số
-            var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            // 3.2 Xử lý kịch bản lỗi bảo vệ hệ thống: ID không tồn tại trong Database
-            if (post == null) 
+            try
             {
-                // Trả về mã lỗi 404 kèm một "gói tin" JSON thông báo nhỏ gọn để Frontend tự xử lý UI
-                return NotFound(new { message = "Không tìm thấy bài viết này trong hệ thống" });
-            }
+                var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id);
 
-            // 3.3. Trả về toàn bộ đối tượng bài viết (bao gồm cả trường Content chứa mã HTML) kèm mã 200 OK
-            return Ok(post); 
+                if (post == null)
+                {
+                    return NotFound(new { message = "Bài viết này không tồn tại hoặc đã bị gỡ bỏ khỏi hệ thống ThaiCMS" });
+                }
+
+                return Ok(post);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi hệ thống SQL Server khi tải chi tiết bài viết: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// GET: api/posts/latest - Lấy 3 bài viết mới nhất cho trang chủ (phục vụ yêu cầu hiển thị Swagger)
+        /// </summary>
+        [HttpGet("latest")]
+        public async Task<IActionResult> GetLatest()
+        {
+            try
+            {
+                var posts = await _context.Posts
+                    .Include(p => p.Category)
+                    .OrderByDescending(p => p.Id)
+                    .Take(3)
+                    .Select(p => new {
+                        p.Id,
+                        p.Title,
+                        p.ImageUrl,
+                        p.CreatedDate,
+                        CategoryName = p.Category != null ? p.Category.Name : ""
+                    })
+                    .ToListAsync();
+
+                return Ok(posts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi hệ thống SQL Server khi tải danh sách tin tức mới nhất: {ex.Message}");
+            }
         }
     }
 }

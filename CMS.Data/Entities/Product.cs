@@ -31,6 +31,10 @@ namespace CMS.Data.Entities
 
         public string? ImageUrl { get; set; }
 
+        public bool IsNew { get; set; } = false;
+        public bool IsBestSeller { get; set; } = false;
+        public bool IsPromo { get; set; } = false;
+
         public int CategoryProductId { get; set; }
 
         [ForeignKey("CategoryProductId")]

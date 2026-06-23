@@ -1,0 +1,42 @@
+@model CMS.Data.Entities.About
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thêm phân khu giới thiệu mới";
+}
+
+<div class="container mt-4">
+    <h2 class="text-success">THÊM PHÂN KHU GIỚI THIỆU MỚI</h2>
+    <hr />
+    <form asp-action="Create" method="post">
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tên phân khu (Section Name):</label>
+            <input asp-for="SectionName" class="form-control" required placeholder="VD: Nguồn gốc, Giá trị cốt lõi, Tầm nhìn..." />
+            <small class="text-muted">Được dùng làm nhãn phân biệt các phần.</small>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tiêu đề chính (Title):</label>
+            <input asp-for="Title" class="form-control" required placeholder="Nhập tiêu đề hiển thị chính" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Tiêu đề phụ (Subtitle):</label>
+            <input asp-for="Subtitle" class="form-control" placeholder="Nhập tiêu đề phụ / slogan ngắn" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Đường dẫn hình ảnh (ImageUrl):</label>
+            <input asp-for="ImageUrl" class="form-control" placeholder="Nhập link ảnh (https://...)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">Nội dung đoạn văn giới thiệu (Content):</label>
+            <textarea asp-for="Content" class="form-control" rows="6" required placeholder="Nhập nội dung mô tả chi tiết..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success px-4">Thêm mới phân khu</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+    </form>
+</div>
