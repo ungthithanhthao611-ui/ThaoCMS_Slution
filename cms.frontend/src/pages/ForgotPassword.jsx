@@ -44,11 +44,12 @@ const ForgotPassword = () => {
 
         try {
             const res = await authService.resetPassword(email, otp, newPassword);
-            alert(res.message || 'Đổi mật khẩu thành công!');
-            navigate('/login');
+            setSuccess(res.message || 'Đổi mật khẩu thành công! Đang chuyển hướng về trang đăng nhập...');
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
         } catch (err) {
             setError(err.response?.data?.message || 'Mã OTP không đúng hoặc đã hết hạn.');
-        } finally {
             setLoading(false);
         }
     };

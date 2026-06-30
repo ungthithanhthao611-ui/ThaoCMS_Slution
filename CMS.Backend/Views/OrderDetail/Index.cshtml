@@ -5,9 +5,9 @@
     ViewData["Title"] = "Chi tiết đơn hàng";
 }
 
-<div class="container mt-4">
+<div>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-dark fw-bold">CHI TIẾT ĐƠN HÀNG @(ViewBag.OrderId != null ? $"#{ViewBag.OrderId}" : "")</h2>
+        <h2>CHI TIẾT ĐƠN HÀNG @(ViewBag.OrderId != null ? $"#{ViewBag.OrderId}" : "")</h2>
         @if (ViewBag.OrderId != null)
         {
             <a href="/Order" class="btn btn-outline-secondary btn-sm shadow-sm">
@@ -16,15 +16,60 @@
         }
     </div>
 
-    <table class="table table-bordered table-striped table-hover shadow-sm">
-        <thead class="table-dark">
+    @if (TempData["SuccessMsg"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMsg"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMsg"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Lỗi:</strong> @TempData["ErrorMsg"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (ViewBag.Order != null)
+    {
+        var order = ViewBag.Order as CMS.Data.Entities.Order;
+        <div class="card mb-4 shadow-sm border-0 bg-light">
+            <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1 fw-bold"><i class="bi bi-receipt"></i> Đơn hàng của khách hàng: @(order.Customer?.FullName ?? "Không xác định")</h5>
+                    <small class="text-muted">Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy HH:mm") - Tổng tiền: <strong class="text-danger">@((order.OrderDetails?.Sum(od => od.Quantity * od.UnitPrice) ?? 0).ToString("#,##0")) VNĐ</strong></small>
+                </div>
+                <div>
+                    <form asp-controller="OrderDetail" asp-action="UpdateStatus" method="post" class="d-flex align-items-center">
+                        <input type="hidden" name="orderId" value="@order.Id" />
+                        <label class="me-2 fw-semibold mb-0">Trạng thái:</label>
+                        <select name="status" class="form-select form-select-sm me-2 fw-bold @(order.Status == 0 ? "text-warning" : order.Status == 1 ? "text-primary" : order.Status == 2 ? "text-success" : "text-danger")" style="width: auto;">
+                            <option value="0" selected="@(order.Status == 0)">Chờ duyệt</option>
+                            <option value="1" selected="@(order.Status == 1)">Đang giao</option>
+                            <option value="2" selected="@(order.Status == 2)">Đã xong</option>
+                            <option value="3" selected="@(order.Status == 3)">Khác (3)</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-save"></i> Cập nhật
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    <table class="table">
+        <thead>
             <tr>
                 <th style="width: 80px;">ID</th>
                 <th>Đơn hàng</th>
                 <th>Sản phẩm</th>
+                <th>Size</th>
                 <th>Số lượng</th>
                 <th>Đơn giá</th>
                 <th>Thành tiền</th>
+                <th class="text-center">Thao tác</th>
             </tr>
         </thead>
 
@@ -56,9 +101,34 @@
                             </div>
                         </div>
                     </td>
-                    <td class="fw-semibold">@item.Quantity</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.Size))
+                        {
+                            <span class="badge bg-secondary" style="font-size: 0.85rem; padding: 5px 10px;">Size @item.Size</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </td>
+                    <td>
+                        <form asp-controller="OrderDetail" asp-action="UpdateQuantity" method="post" class="d-flex align-items-center" style="max-width: 120px;">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="number" name="quantity" value="@item.Quantity" class="form-control form-control-sm text-center fw-semibold me-1" min="1" />
+                            <button type="submit" class="btn btn-sm btn-outline-primary p-1" title="Lưu số lượng mới">
+                                <i class="bi bi-check2"></i>
+                            </button>
+                        </form>
+                    </td>
                     <td class="text-muted">@item.UnitPrice.ToString("#,##0") VNĐ</td>
                     <td class="text-danger fw-bold">@total.ToString("#,##0") VNĐ</td>
+                    <td class="text-center">
+                        <form asp-controller="OrderDetail" asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline form-delete-detail">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-detail" title="Hủy món này">
+                                <i class="bi bi-trash"></i> Hủy món
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -72,3 +142,41 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-delete-detail').on('click', function (e) {
+                e.preventDefault();
+                var form = $(this).closest('form');
+                
+                Swal.fire({
+                    title: 'Nhập lý do hủy món',
+                    input: 'textarea',
+                    inputPlaceholder: 'Ví dụ: Hết nguyên liệu, Sản phẩm bị lỗi...',
+                    text: 'Lý do này sẽ được ghi nhận vào hệ thống và gửi qua Email cho khách hàng.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Đồng ý hủy',
+                    cancelButtonText: 'Không',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Vui lòng nhập lý do hủy món để khách hàng được biết!';
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: 'cancelReason',
+                            value: result.value
+                        }).appendTo(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

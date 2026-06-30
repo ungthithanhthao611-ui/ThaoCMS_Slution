@@ -39,7 +39,7 @@ namespace CMS.Backend.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(CategoryProduct model, IFormFile uploadImage)
+        public IActionResult Create(CategoryProduct model, IFormFile? uploadImage)
         {
             if (uploadImage != null && uploadImage.Length > 0)
             {
@@ -59,6 +59,11 @@ namespace CMS.Backend.Controllers
 
                 model.ImageUrl = "/uploads/" + fileName;
             }
+
+            ModelState.Remove("Parent");
+            ModelState.Remove("Subcategories");
+            ModelState.Remove("Products");
+            ModelState.Remove("uploadImage");
 
             if (ModelState.IsValid)
             {
@@ -84,7 +89,7 @@ namespace CMS.Backend.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(CategoryProduct model, IFormFile uploadImage)
+        public IActionResult Edit(CategoryProduct model, IFormFile? uploadImage)
         {
             var existingCategory = _context.CategoriesProducts.AsNoTracking().FirstOrDefault(c => c.Id == model.Id);
             if (existingCategory == null) return NotFound();
@@ -112,6 +117,11 @@ namespace CMS.Backend.Controllers
                 model.ImageUrl = existingCategory.ImageUrl;
             }
 
+            ModelState.Remove("Parent");
+            ModelState.Remove("Subcategories");
+            ModelState.Remove("Products");
+            ModelState.Remove("uploadImage");
+
             if (ModelState.IsValid)
             {
                 _context.CategoriesProducts.Update(model);
@@ -131,10 +141,17 @@ namespace CMS.Backend.Controllers
             var category = _context.CategoriesProducts.Find(id);
             if (category != null)
             {
-                // Lưu ý: Có thể xảy ra lỗi nếu đang có sản phẩm thuộc loại này. 
-                // Ở đây chúng ta xử lý xóa đơn giản.
+                // Kiểm tra xem danh mục này có chứa sản phẩm nào không
+                bool hasProducts = _context.Products.Any(p => p.CategoryProductId == id);
+                if (hasProducts)
+                {
+                    TempData["ErrorMsg"] = "Không thể xóa Loại sản phẩm này vì đang chứa các sản phẩm bên trong. Hãy xóa các sản phẩm đó trước!";
+                    return RedirectToAction("Index");
+                }
+
                 _context.CategoriesProducts.Remove(category);
                 _context.SaveChanges();
+                TempData["SuccessMsg"] = "Đã xóa loại sản phẩm thành công.";
             }
             return RedirectToAction("Index");
         }

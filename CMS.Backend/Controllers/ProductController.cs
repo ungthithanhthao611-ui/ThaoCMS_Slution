@@ -36,7 +36,8 @@ namespace CMS.Backend.Controllers
             int pageNumber = page ?? 1;
 
             // Nạp kèm thông tin Loại sản phẩm (CategoryProduct) để tránh lỗi Null, sắp xếp ID giảm dần
-            var data = _context.Products.Include(p => p.CategoryProduct).OrderByDescending(p => p.Id).ToPagedList(pageNumber, pageSize);
+            var data = _context.Products.Include(p => p.CategoryProduct).Where(p => !p.IsDeleted).OrderByDescending(p => p.Id).ToPagedList(pageNumber, pageSize);
+            ViewBag.TrashCount = _context.Products.Count(p => p.IsDeleted);
             return View(data);
         }
 
@@ -138,10 +139,64 @@ namespace CMS.Backend.Controllers
             var product = _context.Products.Find(id);
             if (product != null)
             {
-                _context.Products.Remove(product);
+                // Kiểm tra xem sản phẩm đã có đơn hàng nào chưa
+                bool hasOrders = _context.OrderDetails.Any(od => od.ProductId == id);
+                if (hasOrders)
+                {
+                    TempData["ErrorMsg"] = "Không thể chuyển vào thùng rác vì sản phẩm này đã có khách hàng đặt mua. Hãy đổi trạng thái sang Hết hàng nếu bạn không muốn bán nữa!";
+                    return RedirectToAction("Index");
+                }
+
+                // Chuyển vào thùng rác (Xóa mềm)
+                product.IsDeleted = true;
                 _context.SaveChanges();
+                TempData["SuccessMsg"] = "Đã chuyển sản phẩm vào Thùng rác.";
             }
             return RedirectToAction("Index");
+        }
+
+        // ==========================================
+        // 4.1 THÙNG RÁC VÀ KHÔI PHỤC (RECYCLE BIN)
+        // ==========================================
+        public IActionResult RecycleBin(int? page)
+        {
+            int pageSize = 10;
+            int pageNumber = page ?? 1;
+
+            var data = _context.Products.Include(p => p.CategoryProduct).Where(p => p.IsDeleted).OrderByDescending(p => p.Id).ToPagedList(pageNumber, pageSize);
+            return View(data);
+        }
+
+        public IActionResult Restore(int id)
+        {
+            var product = _context.Products.Find(id);
+            if (product != null)
+            {
+                product.IsDeleted = false;
+                _context.SaveChanges();
+                TempData["SuccessMsg"] = "Đã khôi phục sản phẩm thành công.";
+            }
+            return RedirectToAction("RecycleBin");
+        }
+
+        public IActionResult HardDelete(int id)
+        {
+            var product = _context.Products.Find(id);
+            if (product != null)
+            {
+                // Kiểm tra lại lần nữa cho chắc
+                bool hasOrders = _context.OrderDetails.Any(od => od.ProductId == id);
+                if (hasOrders)
+                {
+                    TempData["ErrorMsg"] = "Không thể xóa vĩnh viễn vì sản phẩm này có liên quan tới đơn hàng. Dữ liệu đơn hàng sẽ bị lỗi!";
+                    return RedirectToAction("RecycleBin");
+                }
+
+                _context.Products.Remove(product);
+                _context.SaveChanges();
+                TempData["SuccessMsg"] = "Đã xóa vĩnh viễn sản phẩm khỏi hệ thống.";
+            }
+            return RedirectToAction("RecycleBin");
         }
 
         // ==========================================

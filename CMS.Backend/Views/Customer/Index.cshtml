@@ -5,13 +5,13 @@
     ViewData["Title"] = "Quản lý khách hàng";
 }
 
-<div class="container mt-4">
+<div>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-dark fw-bold">DANH SÁCH KHÁCH HÀNG</h2>
+        <h2>DANH SÁCH KHÁCH HÀNG</h2>
     </div>
 
-    <table class="table table-bordered table-striped table-hover shadow-sm">
-        <thead class="table-dark">
+    <table class="table">
+        <thead>
             <tr>
                 <th style="width: 80px;">ID</th>
                 <th>Họ và tên</th>
@@ -26,7 +26,7 @@
             {
                 <tr>
                     <td><strong>@item.Id</strong></td>
-                    <td class="text-primary fw-semibold">@item.FullName</td>
+                    <td style="color: #4a2c11; font-weight: 700;">@item.FullName</td>
                     <td><a href="mailto:@item.Email" class="text-decoration-none">@item.Email</a></td>
                     <td><span class="badge bg-light text-dark border">@item.Phone</span></td>
                     <td class="text-muted">@item.Address</td>

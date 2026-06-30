@@ -14,6 +14,8 @@ namespace CMS.Backend.Services
         Task SendOrderConfirmationEmailAsync(Order order, Customer customer, List<OrderDetail> details);
         Task SendForgotPasswordOtpEmailAsync(Customer customer, string otp);
         Task SendAdminNewOrderNotificationEmailAsync(Order order, Customer customer, List<OrderDetail> details);
+        Task SendItemCancelledEmailAsync(Customer customer, Order order, Product cancelledProduct, string cancelReason);
+        Task SendOrderStatusChangedEmailAsync(Order order, Customer customer);
     }
 
     public class EmailService : IEmailService
@@ -318,6 +320,149 @@ namespace CMS.Backend.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to send admin notification email: {ex.Message}");
+            }
+        }
+
+        public async Task SendItemCancelledEmailAsync(Customer customer, Order order, Product cancelledProduct, string cancelReason)
+        {
+            var server = _configuration["SmtpSettings:Server"] ?? "smtp.gmail.com";
+            var portStr = _configuration["SmtpSettings:Port"] ?? "587";
+            int port = int.TryParse(portStr, out int p) ? p : 587;
+            var senderName = _configuration["SmtpSettings:SenderName"] ?? "Highlands Coffee System";
+            var senderEmail = _configuration["SmtpSettings:SenderEmail"] ?? "";
+            var username = _configuration["SmtpSettings:Username"] ?? "";
+            var password = _configuration["SmtpSettings:Password"] ?? "";
+
+            if (string.IsNullOrEmpty(senderEmail) || string.IsNullOrEmpty(customer.Email))
+            {
+                Console.WriteLine("Sender/Customer email is empty. Skipping cancel item notification.");
+                return;
+            }
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(senderName, senderEmail));
+            message.To.Add(new MailboxAddress(customer.FullName, customer.Email));
+            message.Subject = $"[THONG BAO] Thay doi chi tiet don hang #{order.Id}";
+
+            message.Headers.Add("X-Priority", "1"); // High Priority
+            message.Headers.Add("Importance", "High");
+
+            var bodyBuilder = new BodyBuilder();
+
+            bodyBuilder.HtmlBody = $@"
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;'>
+                <div style='text-align: center; border-bottom: 2px solid #b22830; padding-bottom: 10px;'>
+                    <h2 style='color: #b22830; margin: 0;'>THONG BAO DON HANG</h2>
+                    <p style='margin: 5px 0 0 0; color: #777;'>Mot phan don hang cua ban vua duoc dieu chinh.</p>
+                </div>
+                <div style='padding: 20px 0;'>
+                    <p>Kinh chao <strong>{customer.FullName}</strong>,</p>
+                    <p>Chung toi rat tiec phai thong bao rang san pham <strong>{(cancelledProduct?.Name ?? "San pham")}</strong> trong don hang #{order.Id} cua ban hien dang bi loi hoac tam thoi het hang.</p>
+                    
+                    <div style='background-color: #f9f2f4; padding: 15px; border-left: 4px solid #d9534f; margin: 20px 0;'>
+                        <strong>Ly do xoa mon:</strong> <span style='color: #c7254e;'>{cancelReason}</span>
+                    </div>
+
+                    <p>De khong lam cham tre viec giao hang, he thong da <strong>tu dong huy san pham nay</strong> khoi don hang cua ban.</p>
+                    
+                    <div style='background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #ffeeba;'>
+                        <strong>Cac san pham con lai trong don hang cua ban van se duoc giao binh thuong.</strong><br/>
+                        Tong tien can thanh toan se duoc nhan vien dieu chinh lai chinh xac khi giao hang.
+                    </div>
+                    
+                    <p>Chung toi thanh that xin loi vi su bat tien nay. Mong ban thong cam cho su co ngoai y muon nay.</p>
+                </div>
+                <div style='text-align: center; border-top: 1px solid #eee; padding-top: 15px; font-size: 12px; color: #777;'>
+                    <p>Cam on ban da tin tuong va lua chon Highlands Coffee.</p>
+                    <p>&copy; Highlands Coffee. All rights reserved.</p>
+                </div>
+            </div>";
+
+            message.Body = bodyBuilder.ToMessageBody();
+
+            using var client = new SmtpClient();
+            try
+            {
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                await client.ConnectAsync(server, port, SecureSocketOptions.StartTls);
+                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password) && password != "your-app-password")
+                {
+                    await client.AuthenticateAsync(username, password);
+                }
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+                Console.WriteLine($"Item cancelled email sent to {customer.Email} for Order #{order.Id}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send item cancelled email: {ex.Message}");
+            }
+        }
+        public async Task SendOrderStatusChangedEmailAsync(Order order, Customer customer)
+        {
+            if (order.Status == 0) return; // Không gửi mail khi chờ duyệt vì lúc mới tạo đã gửi rồi
+
+            var server = _configuration["SmtpSettings:Server"] ?? "smtp.gmail.com";
+            var portStr = _configuration["SmtpSettings:Port"] ?? "587";
+            var port = int.Parse(portStr);
+            var senderEmail = _configuration["SmtpSettings:SenderEmail"] ?? "your-email@gmail.com";
+            var senderName = _configuration["SmtpSettings:SenderName"] ?? "ThaoCMS System";
+            var password = _configuration["SmtpSettings:Password"] ?? "your-app-password";
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(senderName, senderEmail));
+            message.To.Add(new MailboxAddress(customer.FullName, customer.Email));
+
+            string statusText = order.Status == 1 ? "Đang giao hàng" : "Đã giao thành công";
+            message.Subject = $"Cập nhật trạng thái Đơn hàng #{order.Id} - {statusText}";
+
+            var bodyBuilder = new BodyBuilder();
+
+            string titleMessage = order.Status == 1 
+                ? "Đơn hàng của bạn đang trên đường vận chuyển!" 
+                : "Đơn hàng của bạn đã được giao thành công!";
+            string subMessage = order.Status == 1
+                ? "Shipper của chúng tôi đang tiến hành giao hàng. Vui lòng chú ý điện thoại để nhận hàng bạn nhé!"
+                : "Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của ThaoCMS. Rất mong được phục vụ bạn trong những lần tiếp theo.";
+
+            string htmlTemplate = $@"
+            <html>
+            <body style='font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;'>
+                <div style='max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; border-top: 5px solid #b22830; box-shadow: 0 4px 10px rgba(0,0,0,0.1);'>
+                    <h2 style='color: #b22830; text-align: center;'>CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG #{order.Id}</h2>
+                    <p>Xin chào <strong>{customer.FullName}</strong>,</p>
+                    <p style='font-size: 16px; color: #333;'>
+                        {titleMessage}
+                    </p>
+                    <div style='background-color: #fcebe3; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;'>
+                        <p style='margin: 0; font-size: 18px; font-weight: bold; color: #b22830;'>
+                            Trạng thái hiện tại: {statusText}
+                        </p>
+                    </div>
+                    <p>{subMessage}</p>
+                    <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'/>
+                    <p style='font-size: 12px; color: #888; text-align: center;'>ThaoCMS - Hệ thống quản lý cửa hàng chuyên nghiệp</p>
+                </div>
+            </body>
+            </html>";
+
+            bodyBuilder.HtmlBody = htmlTemplate;
+            message.Body = bodyBuilder.ToMessageBody();
+
+            using var client = new SmtpClient();
+            try
+            {
+                await client.ConnectAsync(server, port, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(senderEmail, password);
+                await client.SendAsync(message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending status update email to {customer.Email}: {ex.Message}");
+            }
+            finally
+            {
+                await client.DisconnectAsync(true);
             }
         }
     }

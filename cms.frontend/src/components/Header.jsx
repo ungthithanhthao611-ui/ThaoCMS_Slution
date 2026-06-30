@@ -54,12 +54,23 @@ const Header = () => {
         setCloseTimeout(timeout);
     };
 
+    const [unreadNotifications, setUnreadNotifications] = useState(0);
+
     useEffect(() => {
         const storedCustomer = localStorage.getItem('customer');
         if (storedCustomer) {
-            setCustomer(JSON.parse(storedCustomer));
+            const parsedCustomer = JSON.parse(storedCustomer);
+            setCustomer(parsedCustomer);
+            
+            // Lấy thông báo số lượng từ Orders
+            axiosClient.get(`/Orders/customer/${parsedCustomer.id}`)
+                .then(orders => {
+                    const count = orders.filter(o => o.notes && o.notes.includes('[HỆ THỐNG]') && o.status !== 3).length;
+                    setUnreadNotifications(count);
+                })
+                .catch(err => console.error("Lỗi lấy thông báo:", err));
         }
-    }, []);
+    }, [location.pathname]);
 
     // Gọi API lấy danh sách menu từ database bằng axiosClient
     useEffect(() => {
@@ -184,8 +195,20 @@ const Header = () => {
                                             <div className="auth-buttons">
                                                 {customer ? (
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                                        <Link to="/profile" style={{color: '#fff', textDecoration: 'none', fontSize: '24px'}}>
+                                                        <Link to="/profile" style={{color: '#fff', textDecoration: 'none', fontSize: '24px', position: 'relative'}}>
                                                             <i className="fa fa-user-circle-o"></i>
+                                                            {unreadNotifications > 0 && (
+                                                                <span style={{
+                                                                    position: 'absolute', top: '-4px', right: '-8px',
+                                                                    background: '#ffcc00', color: '#b22830',
+                                                                    borderRadius: '50%', width: '16px', height: '16px',
+                                                                    fontSize: '10px', fontWeight: '900',
+                                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                                                }}>
+                                                                    {unreadNotifications}
+                                                                </span>
+                                                            )}
                                                         </Link>
                                                         <div style={{color: 'white', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', marginTop: '2px', whiteSpace: 'nowrap'}}>{customer.fullName}</div>
                                                         <a href="#" onClick={handleLogout} style={{color: 'rgba(255,255,255,0.7)', fontSize: '10px', textDecoration: 'underline', whiteSpace: 'nowrap'}}>Đăng xuất</a>

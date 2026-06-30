@@ -6,99 +6,129 @@
 }
 
 <div class="container-fluid mt-4">
-    <div class="card shadow border-0">
-        <div class="card-header bg-success text-white py-3">
+    <div class="card shadow border-0" style="border-radius: 15px; overflow: hidden;">
+        <div class="card-header text-white py-3" style="background-color: #1b4d3e;">
             <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam"></i> THÊM SẢN PHẨM MỚI</h5>
         </div>
-        <div class="card-body p-4">
+        <div class="card-body p-4" style="background-color: #fbf6f0;">
             <form asp-action="Create" method="post" enctype="multipart/form-data">
-                <div class="row">
-                    <!-- Cột bên trái: Các thông tin mô tả cơ bản của sản phẩm -->
-                    <div class="col-md-8">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Tên sản phẩm:</label>
-                            <input asp-for="Name" class="form-control form-control-lg" placeholder="Nhập tên sản phẩm..." required />
-                            <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>
+                <div class="row g-4">
+                    <!-- Cột 1: Thông tin cơ bản -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card border-0 shadow-sm h-100 p-4" style="border-radius: 15px; background: #ffffff;">
+                            <h5 class="fw-bold mb-4" style="color: #1b4d3e; border-bottom: 2px solid #1b4d3e; padding-bottom: 8px;">Thông tin cơ bản</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Tên sản phẩm:</label>
+                                <input asp-for="Name" class="form-control" placeholder="Nhập tên sản phẩm..." required style="border-radius: 8px;" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Mô tả chi tiết:</label>
-                            <textarea asp-for="Description" class="form-control" rows="8" placeholder="Nhập thông tin giới thiệu chi tiết về sản phẩm..."></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Loại sản phẩm:</label>
+                                <select asp-for="CategoryProductId" class="form-select" asp-items="ViewBag.CategoryList" required style="border-radius: 8px;">
+                                    <option value="">-- Chọn loại sản phẩm --</option>
+                                </select>
+                                <span asp-validation-for="CategoryProductId" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Mô tả chi tiết:</label>
+                                <textarea asp-for="Description" class="form-control" rows="6" placeholder="Nhập mô tả sản phẩm..."></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Cột bên phải: Giá, Số lượng, Loại sản phẩm, Trạng thái và Ảnh -->
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Loại sản phẩm:</label>
-                            <select asp-for="CategoryProductId" class="form-select" asp-items="ViewBag.CategoryList" required>
-                                <option value="">-- Chọn loại sản phẩm --</option>
-                            </select>
-                            <span asp-validation-for="CategoryProductId" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Giá bán (VNĐ):</label>
-                            <input asp-for="Price" type="number" step="1000" id="product-price" class="form-control" placeholder="Ví dụ: 15000000" required />
-                            <span asp-validation-for="Price" class="text-danger"></span>
-                        </div>
-
-                        <!-- Khu vực trạng thái -->
-                        <div class="mb-3 p-3 bg-light rounded border">
-                            <label class="form-label fw-bold mb-2 text-secondary">Trạng thái sản phẩm:</label>
+                    <!-- Cột 2: Quản lý kho & Giá bán -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card border-0 shadow-sm h-100 p-4" style="border-radius: 15px; background: #ffffff;">
+                            <h5 class="fw-bold mb-4" style="color: #1b4d3e; border-bottom: 2px solid #1b4d3e; padding-bottom: 8px;">Quản lý kho & Giá bán</h5>
                             
-                            <div class="form-check form-switch mb-2">
-                                <input asp-for="IsNew" class="form-check-input" type="checkbox" role="switch">
-                                <label class="form-check-label fw-semibold" for="IsNew">Mới (New)</label>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary">Số lượng kho:</label>
+                                <input asp-for="StockQuantity" type="number" class="form-control" placeholder="Ví dụ: 10" required style="border-radius: 8px;" />
+                                <span asp-validation-for="StockQuantity" class="text-danger"></span>
                             </div>
 
-                            <div class="form-check form-switch mb-2">
-                                <input asp-for="IsBestSeller" class="form-check-input" type="checkbox" role="switch">
-                                <label class="form-check-label fw-semibold" for="IsBestSeller">Bán chạy</label>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-secondary mb-2">Trạng thái sản phẩm:</label>
+                                <div class="d-flex flex-wrap gap-3 p-2 bg-light rounded-3 border">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsNew" class="form-check-input" type="checkbox" role="switch">
+                                        <label class="form-check-label fw-semibold text-muted" for="IsNew">Mới</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsBestSeller" class="form-check-input" type="checkbox" role="switch">
+                                        <label class="form-check-label fw-semibold text-muted" for="IsBestSeller">Bán chạy</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsPromo" class="form-check-input" type="checkbox" role="switch">
+                                        <label class="form-check-label fw-semibold text-danger" for="IsPromo">Khuyến mãi</label>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-check form-switch">
-                                <input asp-for="IsPromo" class="form-check-input" type="checkbox" role="switch">
-                                <label class="form-check-label fw-semibold text-danger" for="IsPromo">Khuyến mãi (Sale)</label>
+                            <div class="p-3 rounded-3 border" style="background-color: #fdfbf9;">
+                                <h6 class="fw-bold mb-3" style="color: #1b4d3e;"><i class="bi bi-currency-dollar"></i> Giá bán</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Giá bán Size S</label>
+                                    <input asp-for="Price" type="number" step="1000" id="product-price" class="form-control" placeholder="Ví dụ: 55000" required style="border-radius: 8px;" />
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Giá bán Size M (Tùy chọn):</label>
+                                    <input asp-for="PriceSizeM" type="number" step="1000" class="form-control" placeholder="Để trống nếu không có Size M" style="border-radius: 8px;" />
+                                    <span asp-validation-for="PriceSizeM" class="text-danger"></span>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Nhập giá bán cho Size M (Sản phẩm đồ uống).</small>
+                                </div>
+
+                                <!-- Giá khuyến mãi (Ẩn hiện động) -->
+                                <div class="mb-2 d-none" id="promo-price-group">
+                                    <label class="form-label fw-semibold text-danger">Giá khuyến mãi (VNĐ):</label>
+                                    <input asp-for="SalePrice" type="number" step="1000" class="form-control" placeholder="Ví dụ: 45000" style="border-radius: 8px;" />
+                                    <span asp-validation-for="SalePrice" class="text-danger"></span>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Ô nhập giá khuyến mãi, ẩn mặc định và chỉ hiện khi IsPromo được tick -->
-                        <div class="mb-3 d-none" id="promo-price-group">
-                            <label class="form-label fw-bold text-danger">Giá khuyến mãi (VNĐ):</label>
-                            <input asp-for="SalePrice" type="number" step="1000" class="form-control" placeholder="Ví dụ: 13000000" />
-                            <span asp-validation-for="SalePrice" class="text-danger"></span>
-                            <small class="text-muted">Giá khuyến mãi phải nhỏ hơn giá bán gốc.</small>
-                        </div>
+                    <!-- Cột 3: Hình ảnh sản phẩm -->
+                    <div class="col-lg-4 col-md-12">
+                        <div class="card border-0 shadow-sm h-100 p-4" style="border-radius: 15px; background: #ffffff;">
+                            <h5 class="fw-bold mb-4" style="color: #1b4d3e; border-bottom: 2px solid #1b4d3e; padding-bottom: 8px;">Hình ảnh sản phẩm</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Ảnh đại diện</label>
+                                <input type="file" name="uploadImage" class="form-control" accept="image/*" id="imageUpload" style="border-radius: 8px;" />
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Số lượng kho:</label>
-                            <input asp-for="StockQuantity" type="number" class="form-control" placeholder="Ví dụ: 10" required />
-                            <span asp-validation-for="StockQuantity" class="text-danger"></span>
-                        </div>
+                            <!-- Khung Preview hình ảnh -->
+                            <div class="mb-3 text-center d-flex align-items-center justify-content-center border rounded-3" 
+                                 style="height: 180px; background-color: #f8f9fa; border-style: dashed !important; border-width: 2px !important; border-color: #cbd5e0 !important;">
+                                <img id="imagePreview" src="https://placehold.co/180x120?text=No+Image" class="img-fluid rounded-3" style="max-height: 160px; object-fit: contain;" />
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Tải ảnh đại diện sản phẩm:</label>
-                            <input type="file" name="uploadImage" class="form-control" accept="image/*" />
-                            <small class="text-muted">Chọn tệp hình ảnh từ máy tính của bạn.</small>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Hoặc nhập link hình ảnh (URL):</label>
+                                <input asp-for="ImageUrl" class="form-control" placeholder="https://..." id="imageUrlInput" style="border-radius: 8px;" />
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Nếu không tải ảnh lên, bạn có thể dán liên kết URL ảnh trực tiếp vào đây.</small>
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Hoặc nhập link hình ảnh (URL):</label>
-                            <input asp-for="ImageUrl" class="form-control" placeholder="https://..." />
-                            <small class="text-muted">Nếu không tải ảnh lên, bạn có thể dán liên kết URL ảnh trực tiếp vào đây.</small>
-                        </div>
-
-                        <hr />
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg" id="btn-submit">
-                                <i class="bi bi-check-circle"></i> Lưu sản phẩm
-                            </button>
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Quay lại danh sách
-                            </a>
-                        </div>
+                    <!-- Hàng nút bấm căn giữa -->
+                    <div class="col-12 mt-4 text-center">
+                        <button type="submit" class="btn btn-lg px-5 py-2.5 me-3 text-white border-0" id="btn-submit" 
+                                style="background-color: #603813; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(96,56,19,0.25); transition: all 0.3s;">
+                            <i class="bi bi-check-circle-fill me-1"></i> Lưu sản phẩm
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg px-5 py-2.5" 
+                           style="border-radius: 10px; font-weight: 600; transition: all 0.3s;">
+                            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                        </a>
                     </div>
                 </div>
             </form>
@@ -107,6 +137,16 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#Description'), {
+                toolbar: [ 'bold', 'italic', 'link', '|', 'heading', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo' ]
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
     <script>
         $(document).ready(function() {
             var promoSwitch = $('#IsPromo');
@@ -131,6 +171,28 @@
 
             // Chạy kiểm tra ngay khi load
             togglePromoGroup();
+
+            // Preview ảnh khi chọn file tải lên
+            $('#imageUpload').change(function() {
+                const file = this.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function(event) {
+                        $('#imagePreview').attr('src', event.target.result);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Preview ảnh khi nhập URL
+            $('#imageUrlInput').on('input', function() {
+                const url = $(this).val();
+                if (url) {
+                    $('#imagePreview').attr('src', url);
+                } else {
+                    $('#imagePreview').attr('src', 'https://placehold.co/180x120?text=No+Image');
+                }
+            });
 
             // Validate logic giá trước khi submit
             $('#btn-submit').on('click', function(e) {

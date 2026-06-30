@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CMS.Data;
+using CMS.Data.Entities;
+using CMS.Backend.DTOs;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace CMS.Backend.Controllers
 {
@@ -23,6 +26,7 @@ namespace CMS.Backend.Controllers
         /// Nhận tham số lọc động gửi từ { params: filters } của dịch vụ postService.js
         /// </summary>
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<PostOutDTO>), 200)]
         public async Task<IActionResult> GetAll([FromQuery] int? categoryId)
         {
             try
@@ -59,7 +63,7 @@ namespace CMS.Backend.Controllers
 
                 if (post == null)
                 {
-                    return NotFound(new { message = "Bài viết này không tồn tại hoặc đã bị gỡ bỏ khỏi hệ thống ThaiCMS" });
+                    return NotFound(new { message = "Bài viết này không tồn tại hoặc đã bị gỡ bỏ khỏi hệ thống ThaoCMS" });
                 }
 
                 return Ok(post);

@@ -17,7 +17,7 @@ const Cart = () => {
                     <div style={{ fontSize: '80px', marginBottom: '20px', lineHeight: 1 }}>🛒</div>
                     <h2 style={{ color: '#b22830', fontWeight: '800', marginBottom: '10px', marginTop: '10px' }}>Giỏ hàng trống</h2>
                     <p style={{ color: '#888', marginBottom: '30px' }}>Hãy thêm đồ uống yêu thích của bạn nhé!</p>
-                    <Link to="/shop" style={{
+                    <Link to="/san-pham" style={{
                         backgroundColor: '#b22830', color: 'white', padding: '14px 40px',
                         borderRadius: '8px', textDecoration: 'none', fontWeight: '700',
                         fontSize: '1rem', letterSpacing: '1px'
@@ -47,7 +47,7 @@ const Cart = () => {
                                     ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE}${item.imageUrl.startsWith('/') ? '' : '/'}${item.imageUrl}`)
                                     : null;
                                 return (
-                                    <div key={item.id} style={{
+                                    <div key={`${item.id}-${item.selectedSize || 'S'}`} style={{
                                         background: 'white', borderRadius: '12px', padding: '16px',
                                         marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '16px',
                                         boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -63,6 +63,9 @@ const Cart = () => {
                                         {/* Thông tin */}
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontWeight: '700', fontSize: '1rem', marginBottom: '4px' }}>{item.name}</div>
+                                            <div style={{ display: 'inline-block', background: '#f0f0f0', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', color: '#666', fontWeight: 'bold', marginBottom: '6px' }}>
+                                                Size {item.selectedSize || 'S'}
+                                            </div>
                                             <div style={{ color: '#b22830', fontWeight: '800', fontSize: '1rem' }}>
                                                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}
                                             </div>
@@ -70,13 +73,13 @@ const Cart = () => {
 
                                         {/* Tăng/giảm số lượng */}
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} style={{
+                                            <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedSize || 'S')} style={{
                                                 width: '32px', height: '32px', borderRadius: '50%', border: '2px solid #b22830',
                                                 background: 'white', color: '#b22830', fontWeight: '800', fontSize: '18px',
                                                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
                                             }}>−</button>
                                             <span style={{ fontWeight: '700', fontSize: '1.1rem', minWidth: '24px', textAlign: 'center' }}>{item.quantity}</span>
-                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} style={{
+                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedSize || 'S')} style={{
                                                 width: '32px', height: '32px', borderRadius: '50%', border: '2px solid #b22830',
                                                 background: '#b22830', color: 'white', fontWeight: '800', fontSize: '18px',
                                                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -89,7 +92,7 @@ const Cart = () => {
                                         </div>
 
                                         {/* Xóa */}
-                                        <button onClick={() => removeFromCart(item.id)} style={{
+                                        <button onClick={() => removeFromCart(item.id, item.selectedSize || 'S')} style={{
                                             background: 'none', border: 'none', color: '#ccc', cursor: 'pointer',
                                             fontSize: '20px', padding: '4px', transition: 'color 0.2s'
                                         }} onMouseEnter={e => e.target.style.color = '#e74c3c'} onMouseLeave={e => e.target.style.color = '#ccc'}>
@@ -137,8 +140,8 @@ const Cart = () => {
                                     letterSpacing: '1px', textTransform: 'uppercase',
                                     transition: 'all 0.3s ease'
                                 }}
-                                onMouseEnter={e => { e.target.style.backgroundColor = '#8c1e24'; e.target.style.transform = 'translateY(-2px)'; }}
-                                onMouseLeave={e => { e.target.style.backgroundColor = '#b22830'; e.target.style.transform = 'translateY(0)'; }}>
+                                    onMouseEnter={e => { e.target.style.backgroundColor = '#8c1e24'; e.target.style.transform = 'translateY(-2px)'; }}
+                                    onMouseLeave={e => { e.target.style.backgroundColor = '#b22830'; e.target.style.transform = 'translateY(0)'; }}>
                                     Đặt hàng ngay →
                                 </button>
 

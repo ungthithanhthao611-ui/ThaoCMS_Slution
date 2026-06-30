@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using CMS.Backend.Services;
+using CMS.Backend.DTOs;
 
 namespace CMS.Backend.Controllers
 {
@@ -29,6 +30,7 @@ namespace CMS.Backend.Controllers
         /// Đường dẫn: POST https://localhost:xxxx/api/Orders
         /// </summary>
         [HttpPost]
+        [ProducesResponseType(typeof(OrderOutDTO), 200)]
         public async Task<IActionResult> CreateOrder([FromBody] OrderInputDTO input)
         {
             // [BUỔI 6] 1. Kiểm tra kịch bản lỗi bảo vệ: Nếu dữ liệu truyền lên trống rỗng
@@ -72,12 +74,36 @@ namespace CMS.Backend.Controllers
                     }
 
                     // 1. Tạo OrderDetail
+                    decimal finalPrice = product.Price;
+                    if (product.SalePrice.HasValue && product.SalePrice.Value > 0 && product.SalePrice.Value < product.Price)
+                    {
+                        finalPrice = product.SalePrice.Value;
+                    }
+
+                    if (item.Size == "M" || item.Size == "Size M")
+                    {
+                        if (product.PriceSizeM.HasValue && product.PriceSizeM.Value > 0)
+                        {
+                            finalPrice = product.PriceSizeM.Value;
+                            if (product.SalePrice.HasValue && product.SalePrice.Value > 0 && product.SalePrice.Value < product.Price)
+                            {
+                                decimal discountRatio = product.SalePrice.Value / product.Price;
+                                finalPrice = Math.Round(product.PriceSizeM.Value * discountRatio);
+                            }
+                        }
+                        else
+                        {
+                            finalPrice += 10000;
+                        }
+                    }
+
                     var orderDetail = new OrderDetail
                     {
                         OrderId = newOrder.Id,
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        UnitPrice = product.Price // Lấy đúng giá hiện tại của sản phẩm
+                        UnitPrice = finalPrice,
+                        Size = item.Size
                     };
                     _context.OrderDetails.Add(orderDetail);
 
@@ -128,6 +154,7 @@ namespace CMS.Backend.Controllers
         /// Đường dẫn: GET https://localhost:xxxx/api/Orders/customer/{customerId}
         /// </summary>
         [HttpGet("customer/{customerId}")]
+        [ProducesResponseType(typeof(IEnumerable<OrderOutDTO>), 200)]
         public async Task<IActionResult> GetByCustomer(int customerId)
         {
             var orders = await _context.Orders
@@ -144,7 +171,8 @@ namespace CMS.Backend.Controllers
                         ProductName = od.Product != null ? od.Product.Name : "",
                         ProductImageUrl = od.Product != null ? od.Product.ImageUrl : "",
                         od.Quantity,
-                        od.UnitPrice
+                        od.UnitPrice,
+                        od.Size
                     }).ToList() : null
                 })
                 .ToListAsync();
@@ -155,6 +183,29 @@ namespace CMS.Backend.Controllers
             }
 
             return Ok(orders);
+        }
+
+        /// <summary>
+        /// API: Hủy đơn hàng từ phía Khách hàng
+        /// Đường dẫn: PUT https://localhost:xxxx/api/Orders/Cancel/{id}
+        /// </summary>
+        [HttpPut("Cancel/{id}")]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound(new { message = "Không tìm thấy đơn hàng." });
+            }
+
+            // Status 3: Đã hủy
+            order.Status = 3;
+            order.Notes = string.IsNullOrEmpty(order.Notes) ? "[KHÁCH HÀNG] Đã hủy đơn hàng." : order.Notes + "\n[KHÁCH HÀNG] Đã hủy đơn hàng.";
+
+            // Tùy chọn: Hoàn lại số lượng tồn kho nếu cần (tạm thời bỏ qua theo yêu cầu đồ án cơ bản)
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Đã hủy đơn hàng thành công." });
         }
     }
 
@@ -172,5 +223,6 @@ namespace CMS.Backend.Controllers
     {
         public int ProductId { get; set; }
         public int Quantity { get; set; }
+        public string? Size { get; set; }
     }
 }

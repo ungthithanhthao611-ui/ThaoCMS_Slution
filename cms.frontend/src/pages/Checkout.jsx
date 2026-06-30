@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import orderService from '../services/orderService';
+import { IMAGE_BASE } from '../api/axiosClient';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import axios from 'axios'; // Dùng axios mặc định để gọi API ngoài
 
 // Danh sách chi nhánh Highlands HCM (hard-code)
 const HCM_BRANCHES = [
@@ -19,90 +21,131 @@ const HCM_BRANCHES = [
     { id: 10, district: 'Gò Vấp', name: 'Highlands Coffee Nguyễn Kiệm', address: '262 Nguyễn Kiệm, P. 3' },
 ];
 
-const DISTRICTS = [...new Set(HCM_BRANCHES.map(b => b.district))];
-
-// Tạo các khung giờ giao hàng (30 phút/slot) từ 07:00 đến 22:00
-const generateTimeSlots = (date) => {
-    const slots = [];
-    const start = new Date(date);
-    const now = new Date();
-    start.setHours(7, 0, 0, 0);
-    const end = new Date(date);
-    end.setHours(22, 0, 0, 0);
-
-    while (start <= end) {
-        const slotTime = new Date(start);
-        // Với hôm nay, chỉ hiện slot từ bây giờ + 30 phút trở đi
-        if (slotTime.toDateString() !== now.toDateString() || slotTime > new Date(now.getTime() + 30 * 60000)) {
-            slots.push(new Date(slotTime));
-        }
-        start.setMinutes(start.getMinutes() + 30);
-    }
-    return slots;
-};
-
-// Lấy 3 ngày tiếp theo (hôm nay + 2 ngày)
-const getAvailableDates = () => {
-    const dates = [];
-    for (let i = 0; i < 3; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() + i);
-        dates.push(d);
-    }
-    return dates;
-};
-
-const formatDate = (date) => {
-    const days = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return `${days[date.getDay()]}, ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-};
-
 const Checkout = () => {
     const { cartItems, totalPrice, clearCart } = useCart();
     const navigate = useNavigate();
 
-    // Kiểm tra giờ mở cửa (07:00 - 22:00) để cho phép "Giao ngay"
-    const now = new Date();
-    const currentHour = now.getHours();
-    const isOpenNow = currentHour >= 7 && currentHour < 22;
+    // Customer Info (ReadOnly mostly)
+    const [customer, setCustomer] = useState({ fullName: '', email: '', phone: '', gender: 1 });
 
-    // State form
-    const [deliveryType, setDeliveryType] = useState(isOpenNow ? 'now' : 'scheduled');
-    const [selectedDistrict, setSelectedDistrict] = useState('');
-    const [selectedBranchId, setSelectedBranchId] = useState('');
+    // API Address States
+    const [districts, setDistricts] = useState([]);
+    const [wards, setWards] = useState([]);
+    
+    // Selected Address States
+    const [selectedDistrictId, setSelectedDistrictId] = useState('');
+    const [selectedDistrictName, setSelectedDistrictName] = useState('');
+    const [selectedWardCode, setSelectedWardCode] = useState('');
+    const [selectedWardName, setSelectedWardName] = useState('');
     const [streetAddress, setStreetAddress] = useState('');
-    const [selectedDate, setSelectedDate] = useState(getAvailableDates()[0]);
-    const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
     const [notes, setNotes] = useState('');
+    
+    // Auto-selected branch
+    const [assignedBranch, setAssignedBranch] = useState(null);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const availableDates = getAvailableDates();
-    const timeSlots = useMemo(() => generateTimeSlots(selectedDate), [selectedDate]);
+    // 1. Fetch Customer info from LocalStorage
+    useEffect(() => {
+        const stored = localStorage.getItem('customer');
+        if (stored) {
+            const cust = JSON.parse(stored);
+            setCustomer({
+                fullName: cust.fullName || '',
+                email: cust.email || '',
+                phone: cust.phone || '',
+                gender: cust.gender !== undefined ? cust.gender : 1 // 1 Nam, 0 Nu
+            });
+        }
+    }, []);
 
-    const filteredBranches = HCM_BRANCHES.filter(b => b.district === selectedDistrict);
-    const selectedBranch = HCM_BRANCHES.find(b => b.id === Number(selectedBranchId));
+    const handleCustomerChange = (field, value) => {
+        setCustomer(prev => ({ ...prev, [field]: value }));
+    };
 
-    // Tính toán địa chỉ giao hàng cuối
-    const fullDeliveryAddress = selectedBranch && streetAddress
-        ? `${streetAddress}, ${selectedBranch.district}, TP.HCM (Chi nhánh gần nhất: ${selectedBranch.name})`
-        : '';
+    // 2. Fetch Districts of TP.HCM (code = 79)
+    useEffect(() => {
+        const fetchDistricts = async () => {
+            try {
+                const res = await axios.get('https://provinces.open-api.vn/api/p/79?depth=2');
+                setDistricts(res.data.districts);
+            } catch (err) {
+                console.error("Lỗi lấy danh sách quận:", err);
+            }
+        };
+        fetchDistricts();
+    }, []);
+
+    // 3. When District changes -> fetch Wards & Assign Branch
+    useEffect(() => {
+        if (!selectedDistrictId) {
+            setWards([]);
+            setAssignedBranch(null);
+            return;
+        }
+
+        // Fetch Wards
+        const fetchWards = async () => {
+            try {
+                const res = await axios.get(`https://provinces.open-api.vn/api/d/${selectedDistrictId}?depth=2`);
+                setWards(res.data.wards);
+            } catch (err) {
+                console.error("Lỗi lấy phường xã:", err);
+            }
+        };
+        fetchWards();
+
+        // Assign Branch
+        const districtObj = districts.find(d => d.code === Number(selectedDistrictId));
+        if (districtObj) {
+            const dName = districtObj.name;
+            setSelectedDistrictName(dName);
+
+            // Tìm branch phù hợp (so khớp tên quận có chữ Quận 1, Quận 3, Bình Thạnh...)
+            let found = HCM_BRANCHES.find(b => dName.includes(b.district));
+            
+            // Nếu không tìm thấy, gán đại một chi nhánh trung tâm
+            if (!found) {
+                found = HCM_BRANCHES[0]; 
+            }
+            setAssignedBranch(found);
+        }
+
+        // Reset ward
+        setSelectedWardCode('');
+        setSelectedWardName('');
+    }, [selectedDistrictId, districts]);
+
+    // Update selected Ward name
+    const handleWardChange = (e) => {
+        const code = e.target.value;
+        setSelectedWardCode(code);
+        const wardObj = wards.find(w => w.code === Number(code));
+        if (wardObj) {
+            setSelectedWardName(wardObj.name);
+        }
+    };
+
+    // Calculate full address string to save to DB
+    const fullDeliveryAddress = () => {
+        if (!selectedDistrictName || !selectedWardName || !streetAddress.trim()) return '';
+        return `Người nhận: ${customer.fullName} - ${customer.phone}\nĐịa chỉ: ${streetAddress}, ${selectedWardName}, ${selectedDistrictName}, TP.HCM\n(Giao từ: ${assignedBranch?.name})`;
+    };
 
     const isFormValid = () => {
-        if (!selectedDistrict || !selectedBranchId || !streetAddress.trim()) return false;
-        if (deliveryType === 'scheduled' && !selectedTimeSlot) return false;
-        return true;
+        return selectedDistrictId && selectedWardCode && streetAddress.trim();
     };
 
     const handlePlaceOrder = async () => {
-        const customer = JSON.parse(localStorage.getItem('customer') || 'null');
-        if (!customer) {
+        const custId = JSON.parse(localStorage.getItem('customer') || 'null')?.id;
+        if (!custId) {
             navigate('/login');
             return;
         }
         if (!isFormValid()) {
-            setError('Vui lòng điền đầy đủ thông tin địa chỉ và thời gian giao hàng.');
+            setError('Vui lòng điền đầy đủ thông tin giao hàng.');
             return;
         }
         setError('');
@@ -110,11 +153,11 @@ const Checkout = () => {
 
         try {
             const orderData = {
-                customerId: customer.id,
-                notes: notes || `Giao hàng ${deliveryType === 'now' ? 'ngay' : 'theo lịch'}`,
-                deliveryAddress: fullDeliveryAddress,
-                deliveryTime: deliveryType === 'scheduled' ? selectedTimeSlot.toISOString() : null,
-                items: cartItems.map(item => ({ productId: item.id, quantity: item.quantity }))
+                customerId: custId,
+                notes: notes || 'Không có ghi chú',
+                deliveryAddress: fullDeliveryAddress(),
+                deliveryTime: null, // Giao ngay
+                items: cartItems.map(item => ({ productId: item.id, quantity: item.quantity, size: item.selectedSize || 'S' }))
             };
 
             await orderService.createOrder(orderData);
@@ -128,263 +171,288 @@ const Checkout = () => {
         }
     };
 
-    // Tự động điền địa chỉ từ localStorage
-    useEffect(() => {
-        const stored = localStorage.getItem('customer');
-        if (stored) {
-            const customer = JSON.parse(stored);
-            if (customer.address) {
-                setStreetAddress(customer.address);
-            }
-        }
-    }, []);
-
     useEffect(() => {
         if (cartItems.length === 0 && !isSuccess) {
             navigate('/cart');
         }
     }, [cartItems.length, navigate, isSuccess]);
 
-    if (cartItems.length === 0 && !isSuccess) {
-        return null;
-    }
+    if (cartItems.length === 0 && !isSuccess) return null;
+
+    const inputStyle = {
+        width: '100%', padding: '12px 15px', borderRadius: '4px',
+        border: '1px solid #ddd', fontSize: '0.95rem', outline: 'none',
+        boxSizing: 'border-box', backgroundColor: '#fdfdfd'
+    };
+
+    const labelStyle = {
+        minWidth: '100px', fontWeight: '500', color: '#555', fontSize: '0.95rem', display: 'flex', alignItems: 'center'
+    };
+
+    const rowStyle = {
+        display: 'flex', marginBottom: '20px', alignItems: 'flex-start', gap: '15px'
+    };
 
     return (
         <>
             <Header />
-            <div style={{ minHeight: '80vh', backgroundColor: '#f8f8f8', padding: '40px 0' }}>
-                <div className="wrapper">
-                    {/* Nút quay lại giỏ hàng */}
-                    <div style={{ marginBottom: '20px' }}>
-                        <Link to="/cart" style={{
-                            display: 'inline-block', padding: '10px 20px', backgroundColor: '#fff',
-                            color: '#333', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold',
-                            fontSize: '0.9rem', transition: 'all 0.3s', border: '1px solid #ddd',
-                            boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
-                        }}>
-                            <i className="fa fa-arrow-left" style={{ marginRight: '8px' }}></i> Quay về Giỏ Hàng
-                        </Link>
-                    </div>
-                <h2 style={{ color: '#b22830', fontWeight: '800', textTransform: 'uppercase', marginBottom: '30px', fontSize: '26px' }}>
-                    🚀 Xác nhận đặt hàng
-                </h2>
-
-                <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                    {/* CỘT TRÁI: Form thông tin */}
-                    <div style={{ flex: 1, minWidth: '320px' }}>
-
-                        {/* === BƯỚC 1: CHỌN THỜI GIAN === */}
-                        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-                            <h5 style={{ fontWeight: '800', marginBottom: '16px', color: '#333' }}>
-                                🕐 Thời gian nhận hàng
-                            </h5>
-
-                            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-                                {/* Giao ngay */}
-                                <div
-                                    onClick={() => isOpenNow && setDeliveryType('now')}
-                                    style={{
-                                        flex: 1, padding: '14px', borderRadius: '10px', cursor: isOpenNow ? 'pointer' : 'not-allowed',
-                                        border: `2px solid ${deliveryType === 'now' ? '#b22830' : '#e0e0e0'}`,
-                                        background: deliveryType === 'now' ? '#fff5f5' : 'white',
-                                        opacity: isOpenNow ? 1 : 0.5, transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <div style={{ fontWeight: '700', color: deliveryType === 'now' ? '#b22830' : '#333' }}>
-                                        ⚡ Giao ngay
-                                    </div>
-                                    <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>
-                                        {isOpenNow ? '25 – 40 phút' : 'Ngoài giờ hoạt động'}
-                                    </div>
-                                </div>
-
-                                {/* Đặt trước */}
-                                <div
-                                    onClick={() => setDeliveryType('scheduled')}
-                                    style={{
-                                        flex: 1, padding: '14px', borderRadius: '10px', cursor: 'pointer',
-                                        border: `2px solid ${deliveryType === 'scheduled' ? '#b22830' : '#e0e0e0'}`,
-                                        background: deliveryType === 'scheduled' ? '#fff5f5' : 'white',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <div style={{ fontWeight: '700', color: deliveryType === 'scheduled' ? '#b22830' : '#333' }}>
-                                        📅 Đặt trước
-                                    </div>
-                                    <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>Chọn ngày & giờ</div>
-                                </div>
-                            </div>
-
-                            {/* Chọn ngày và giờ khi đặt trước */}
-                            {deliveryType === 'scheduled' && (
-                                <>
-                                    {/* Chọn ngày */}
-                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                                        {availableDates.map((date, idx) => (
-                                            <button key={idx} onClick={() => { setSelectedDate(date); setSelectedTimeSlot(null); }} style={{
-                                                padding: '8px 16px', borderRadius: '8px', border: `2px solid ${selectedDate.toDateString() === date.toDateString() ? '#b22830' : '#e0e0e0'}`,
-                                                background: selectedDate.toDateString() === date.toDateString() ? '#b22830' : 'white',
-                                                color: selectedDate.toDateString() === date.toDateString() ? 'white' : '#333',
-                                                fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem'
-                                            }}>
-                                                {idx === 0 ? 'Hôm nay' : idx === 1 ? 'Ngày mai' : formatDate(date)}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Chọn giờ */}
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                        {timeSlots.map((slot, idx) => (
-                                            <button key={idx} onClick={() => setSelectedTimeSlot(slot)} style={{
-                                                padding: '7px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '600',
-                                                border: `2px solid ${selectedTimeSlot?.getTime() === slot.getTime() ? '#b22830' : '#e0e0e0'}`,
-                                                background: selectedTimeSlot?.getTime() === slot.getTime() ? '#b22830' : 'white',
-                                                color: selectedTimeSlot?.getTime() === slot.getTime() ? 'white' : '#555',
-                                                cursor: 'pointer'
-                                            }}>
-                                                {slot.getHours().toString().padStart(2, '0')}:{slot.getMinutes().toString().padStart(2, '0')}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {timeSlots.length === 0 && <p style={{ color: '#e74c3c', fontSize: '0.85rem' }}>Hôm nay đã hết khung giờ giao hàng. Vui lòng chọn ngày khác.</p>}
-                                </>
-                            )}
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes slideIn {
+                    from { opacity: 0; transform: translateX(-15px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                .checkout-wrapper {
+                    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .custom-input {
+                    transition: all 0.3s ease;
+                }
+                .custom-input:focus:not([readonly]) {
+                    border-color: #3498db !important;
+                    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15) !important;
+                    background-color: #fff !important;
+                }
+                .hover-item {
+                    transition: all 0.3s ease;
+                    padding: 10px;
+                    border-radius: 8px;
+                }
+                .hover-item:hover {
+                    background: #f9f9f9;
+                    transform: translateX(5px);
+                }
+                .submit-btn {
+                    transition: all 0.3s ease;
+                }
+                .submit-btn:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 15px rgba(52, 73, 94, 0.3);
+                    background: #2c3e50 !important;
+                }
+                .submit-btn:active:not(:disabled) {
+                    transform: translateY(0);
+                    box-shadow: none;
+                }
+                .branch-notify {
+                    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+            `}</style>
+            <div style={{ minHeight: '80vh', backgroundColor: '#fff', padding: '40px 0' }}>
+                <div className="wrapper checkout-wrapper">
+                    
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '30px' }}>
+                        <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                            Trang chủ / <span style={{ color: '#333' }}>Đặt hàng</span>
                         </div>
+                    </div>
 
-                        {/* === BƯỚC 2: ĐỊA CHỈ GIAO HÀNG === */}
-                        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-                            <h5 style={{ fontWeight: '800', marginBottom: '16px', color: '#333' }}>
-                                📍 Địa chỉ giao hàng — TP. Hồ Chí Minh
-                            </h5>
+                    <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                        
+                        {/* CỘT TRÁI: Đặt hàng (Form) */}
+                        <div style={{ flex: 1, minWidth: '400px', padding: '10px 20px 30px 20px' }}>
+                            <h3 style={{ fontWeight: '300', color: '#555', fontSize: '24px', marginBottom: '30px', paddingBottom: '10px' }}>
+                                Đặt hàng
+                            </h3>
 
-                            {/* Chọn quận */}
-                            <div style={{ marginBottom: '12px' }}>
-                                <label style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '6px', display: 'block', color: '#555' }}>Chọn Quận / Huyện</label>
-                                <select value={selectedDistrict} onChange={e => { setSelectedDistrict(e.target.value); setSelectedBranchId(''); }} style={{
-                                    width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #e0e0e0',
-                                    fontSize: '0.95rem', outline: 'none', cursor: 'pointer'
-                                }}>
-                                    <option value="">-- Chọn quận --</option>
-                                    {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                                </select>
+                            {/* Họ tên */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Họ tên*</div>
+                                <div style={{ flex: 1 }}>
+                                    <input className="custom-input" type="text" value={customer.fullName} onChange={e => handleCustomerChange('fullName', e.target.value)} style={inputStyle} />
+                                </div>
                             </div>
 
-                            {/* Chọn chi nhánh gần nhất */}
-                            {selectedDistrict && (
-                                <div style={{ marginBottom: '12px' }}>
-                                    <label style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '6px', display: 'block', color: '#555' }}>
-                                        Chi nhánh Highlands gần nhất
+                            {/* Giới tính */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Giới tính</div>
+                                <div style={{ flex: 1, display: 'flex', gap: '30px', alignItems: 'center', height: '45px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#555' }}>
+                                        <input type="radio" name="gender" checked={customer.gender === 1} onChange={() => handleCustomerChange('gender', 1)} /> Nam
                                     </label>
-                                    <select value={selectedBranchId} onChange={e => setSelectedBranchId(e.target.value)} style={{
-                                        width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #e0e0e0',
-                                        fontSize: '0.95rem', outline: 'none', cursor: 'pointer'
-                                    }}>
-                                        <option value="">-- Chọn chi nhánh --</option>
-                                        {filteredBranches.map(b => <option key={b.id} value={b.id}>{b.name} — {b.address}</option>)}
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#555' }}>
+                                        <input type="radio" name="gender" checked={customer.gender === 0} onChange={() => handleCustomerChange('gender', 0)} /> Nữ
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Email */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Email*</div>
+                                <div style={{ flex: 1 }}>
+                                    <input className="custom-input" type="email" value={customer.email} onChange={e => handleCustomerChange('email', e.target.value)} style={inputStyle} />
+                                </div>
+                            </div>
+
+                            {/* Địa chỉ (Tỉnh/Thành cố định TP.HCM) */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Tỉnh/Thành*</div>
+                                <div style={{ flex: 1 }}>
+                                    <input type="text" value="Hồ Chí Minh" readOnly style={{ ...inputStyle, backgroundColor: '#f9f9f9', color: '#777' }} />
+                                </div>
+                            </div>
+
+                            {/* Quận / Huyện */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Quận/Huyện*</div>
+                                <div style={{ flex: 1 }}>
+                                    <select className="custom-input" value={selectedDistrictId} onChange={e => setSelectedDistrictId(e.target.value)} style={inputStyle}>
+                                        <option value="">-- Chọn Quận/Huyện --</option>
+                                        {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
                                     </select>
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Số nhà / đường */}
-                            {selectedBranchId && (
-                                <div style={{ marginBottom: '12px' }}>
-                                    <label style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '6px', display: 'block', color: '#555' }}>
-                                        Số nhà, tên đường của bạn
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={streetAddress}
-                                        onChange={e => setStreetAddress(e.target.value)}
-                                        placeholder="VD: 12 Nguyễn Trãi, Phường 2"
-                                        style={{
-                                            width: '100%', padding: '12px', borderRadius: '8px',
-                                            border: '2px solid #e0e0e0', fontSize: '0.95rem', outline: 'none',
-                                            boxSizing: 'border-box'
-                                        }}
+                            {/* Phường / Xã */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Phường/Xã*</div>
+                                <div style={{ flex: 1 }}>
+                                    <select className="custom-input" value={selectedWardCode} onChange={handleWardChange} disabled={!selectedDistrictId} style={{ ...inputStyle, cursor: selectedDistrictId ? 'pointer' : 'not-allowed', opacity: selectedDistrictId ? 1 : 0.6 }}>
+                                        <option value="">-- Chọn Phường/Xã --</option>
+                                        {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Địa chỉ chi tiết */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Địa chỉ*</div>
+                                <div style={{ flex: 1 }}>
+                                    <input 
+                                        className="custom-input"
+                                        type="text" 
+                                        value={streetAddress} 
+                                        onChange={e => setStreetAddress(e.target.value)} 
+                                        placeholder="VD: 12 Nguyễn Trãi"
+                                        style={inputStyle} 
                                     />
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Hiển thị địa chỉ đầy đủ */}
-                            {fullDeliveryAddress && (
-                                <div style={{ background: '#fff5f5', border: '1px solid #ffcccc', borderRadius: '8px', padding: '12px', fontSize: '0.85rem', color: '#b22830' }}>
-                                    📦 Giao đến: <strong>{fullDeliveryAddress}</strong>
+                            {/* Hiển thị chi nhánh giao hàng TỰ ĐỘNG */}
+                            {assignedBranch && (
+                                <div className="branch-notify" style={{ ...rowStyle, marginBottom: '20px' }}>
+                                    <div style={{ ...labelStyle, color: '#3498db' }}>Giao từ</div>
+                                    <div style={{ flex: 1, padding: '12px 15px', background: '#ebf5fb', color: '#2980b9', borderRadius: '8px', border: '1px solid #d6eaf8', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
+                                        <i className="fa fa-map-marker" style={{ marginRight: '10px', fontSize: '1.2rem' }}></i>
+                                        <strong>{assignedBranch.name}</strong>
+                                    </div>
                                 </div>
                             )}
-                        </div>
 
-                        {/* === BƯỚC 3: GHI CHÚ === */}
-                        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-                            <h5 style={{ fontWeight: '800', marginBottom: '12px', color: '#333' }}>📝 Ghi chú (không bắt buộc)</h5>
-                            <textarea
-                                value={notes}
-                                onChange={e => setNotes(e.target.value)}
-                                placeholder="VD: Không đường, ít đá, để lạnh... gọi điện trước khi giao"
-                                rows={3}
-                                style={{
-                                    width: '100%', padding: '12px', borderRadius: '8px',
-                                    border: '2px solid #e0e0e0', fontSize: '0.9rem', outline: 'none',
-                                    resize: 'vertical', boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* CỘT PHẢI: Tổng kết & xác nhận */}
-                    <div style={{ width: '320px', flexShrink: 0 }}>
-                        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', position: 'sticky', top: '100px' }}>
-                            <h5 style={{ fontWeight: '800', marginBottom: '16px', color: '#333' }}>📋 Đơn hàng của bạn</h5>
-
-                            {cartItems.map(item => (
-                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem' }}>
-                                    <span style={{ color: '#555' }}>{item.name} × {item.quantity}</span>
-                                    <span style={{ fontWeight: '700' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity)}</span>
-                                </div>
-                            ))}
-
-                            <hr style={{ margin: '16px 0' }} />
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#666', fontSize: '0.9rem' }}>
-                                <span>Phí giao hàng</span>
-                                <span style={{ color: '#28a745', fontWeight: '700' }}>Miễn phí</span>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '800', fontSize: '1.2rem', marginBottom: '8px' }}>
-                                <span>Tổng tiền</span>
-                                <span style={{ color: '#b22830' }}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalPrice)}</span>
-                            </div>
-
-                            {/* Phương thức thanh toán */}
-                            <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ fontSize: '24px' }}>💵</span>
-                                <div>
-                                    <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Tiền mặt (COD)</div>
-                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>Thanh toán khi nhận hàng</div>
+                            {/* Điện thoại */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Điện thoại*</div>
+                                <div style={{ flex: 1 }}>
+                                    <input className="custom-input" type="text" value={customer.phone} onChange={e => handleCustomerChange('phone', e.target.value)} style={inputStyle} />
                                 </div>
                             </div>
 
-                            {error && <div style={{ background: '#ffebee', color: '#c62828', padding: '10px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</div>}
+                            {/* Ghi chú */}
+                            <div style={rowStyle}>
+                                <div style={labelStyle}>Ghi chú</div>
+                                <div style={{ flex: 1 }}>
+                                    <textarea 
+                                        className="custom-input"
+                                        value={notes} 
+                                        onChange={e => setNotes(e.target.value)} 
+                                        rows={4} 
+                                        style={{ ...inputStyle, resize: 'vertical' }}
+                                    ></textarea>
+                                </div>
+                            </div>
 
-                            <button
-                                onClick={handlePlaceOrder}
-                                disabled={loading || !isFormValid()}
-                                style={{
-                                    width: '100%', backgroundColor: isFormValid() ? '#b22830' : '#ccc',
-                                    color: 'white', padding: '16px', borderRadius: '10px', border: 'none',
-                                    fontWeight: '800', fontSize: '1rem', cursor: isFormValid() ? 'pointer' : 'not-allowed',
-                                    letterSpacing: '1px', textTransform: 'uppercase', transition: 'all 0.3s ease'
-                                }}
-                            >
-                                {loading ? '⏳ Đang xử lý...' : '✅ XÁC NHẬN ĐẶT HÀNG'}
-                            </button>
                         </div>
+
+                        {/* CỘT PHẢI: Đơn hàng của bạn */}
+                        <div style={{ width: '450px', flexShrink: 0, background: 'white', border: '1px solid #f0f0f0', borderRadius: '4px', marginTop: '10px' }}>
+                            <div style={{ padding: '20px', background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
+                                <h3 style={{ fontWeight: '400', color: '#555', fontSize: '20px', margin: 0 }}>
+                                    Đơn hàng của bạn
+                                </h3>
+                            </div>
+                            
+                            <div style={{ padding: '20px' }}>
+                                {/* Danh sách sản phẩm */}
+                                {cartItems.map(item => (
+                                    <div key={`${item.id}-${item.selectedSize || 'S'}`} className="hover-item" style={{ display: 'flex', gap: '15px', marginBottom: '10px', alignItems: 'center' }}>
+                                        <div style={{ width: '60px', height: '60px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #eee', flexShrink: 0 }}>
+                                            {item.imageUrl ? (
+                                                <img 
+                                                    src={item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE}${item.imageUrl.startsWith('/') ? '' : '/'}${item.imageUrl}`} 
+                                                    alt={item.name} 
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                />
+                                            ) : (
+                                                <div style={{ width: '100%', height: '100%', background: '#eee' }}></div>
+                                            )}
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ color: '#444', fontSize: '0.95rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span>{item.name}</span>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', background: '#e2e8f0', color: '#4a5568', padding: '2px 6px', borderRadius: '4px' }}>
+                                                    Size {item.selectedSize || 'S'}
+                                                </span>
+                                            </div>
+                                            <div style={{ color: '#888', fontSize: '0.85rem', marginTop: '4px' }}>Số lượng: {item.quantity}</div>
+                                            <div style={{ color: '#999', fontSize: '0.85rem', marginTop: '2px' }}>Đơn giá: {new Intl.NumberFormat('vi-VN').format(item.price)} VND</div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '20px 0' }} />
+
+                                {/* Tổng tiền */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '1.1rem', color: '#555' }}>Tổng tiền:</span>
+                                    <span style={{ fontSize: '1.4rem', color: '#333' }}>{new Intl.NumberFormat('vi-VN').format(totalPrice)} VND</span>
+                                </div>
+                            </div>
+
+                            {/* Hình thức thanh toán */}
+                            <div style={{ background: '#fafafa', padding: '20px', borderTop: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                                <h4 style={{ color: '#555', fontSize: '1.2rem', margin: '0 0 15px 0', fontWeight: '400' }}>Hình thức thanh toán</h4>
+                                
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#444', cursor: 'pointer', fontSize: '0.95rem' }}>
+                                    <input type="radio" checked readOnly style={{ accentColor: '#3498db' }} /> 
+                                    Thanh toán khi nhận hàng
+                                </label>
+                                
+                                <div style={{ background: '#fff', padding: '15px', marginTop: '15px', borderRadius: '4px', border: '1px solid #f0f0f0', fontSize: '0.85rem', color: '#666', lineHeight: 1.5 }}>
+                                    Cửa hàng sẽ gửi hàng đến địa chỉ của bạn, bạn xem hàng rồi thanh toán tiền cho nhân viên giao hàng
+                                </div>
+                            </div>
+
+                            {/* Nút đặt hàng */}
+                            <div style={{ padding: '30px', textAlign: 'center' }}>
+                                {error && <div style={{ color: '#e74c3c', fontSize: '0.9rem', marginBottom: '15px' }}>{error}</div>}
+                                
+                                <button
+                                    className="submit-btn"
+                                    onClick={handlePlaceOrder}
+                                    disabled={loading || !isFormValid()}
+                                    style={{
+                                        background: isFormValid() ? '#34495e' : '#bdc3c7',
+                                        color: 'white', padding: '12px 30px', borderRadius: '8px', border: 'none',
+                                        fontSize: '0.95rem', cursor: isFormValid() ? 'pointer' : 'not-allowed',
+                                        width: '220px', fontWeight: '500'
+                                    }}
+                                >
+                                    {loading ? 'Đang xử lý...' : 'Đặt hàng >'}
+                                </button>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
             </div>
-        </div>
-        <Footer />
-    </>
-);
+            <Footer />
+        </>
+    );
 };
 
 export default Checkout;

@@ -36,10 +36,26 @@ namespace CMS.Data
                         ALTER TABLE [dbo].[Products] ADD [IsPromo] BIT NOT NULL DEFAULT 0;
                     END
                 ");
+
+                // Thêm cột Size vào OrderDetails
+                context.Database.ExecuteSqlRaw(@"
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[OrderDetails]') AND name = 'Size')
+                    BEGIN
+                        ALTER TABLE [dbo].[OrderDetails] ADD [Size] NVARCHAR(20) NULL;
+                    END
+                ");
+
+                // Thêm cột PriceSizeM vào Products
+                context.Database.ExecuteSqlRaw(@"
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Products]') AND name = 'PriceSizeM')
+                    BEGIN
+                        ALTER TABLE [dbo].[Products] ADD [PriceSizeM] DECIMAL(18,2) NULL;
+                    END
+                ");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Lỗi cập nhật cấu trúc bảng Products: " + ex.Message);
+                Console.WriteLine("Lỗi cập nhật cấu trúc bảng Products hoặc OrderDetails: " + ex.Message);
             }
 
             // 1. Khởi tạo danh mục sản phẩm nếu trống

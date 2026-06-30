@@ -12,6 +12,7 @@
         </div>
         <div class="card-body p-4">
             <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="All" class="text-danger mb-3 fw-bold"></div>
                 <input type="hidden" asp-for="Id" />
                 <div class="mb-3">
                     <label class="form-label fw-bold">Tên loại sản phẩm:</label>
@@ -65,3 +66,16 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#Description'), {
+                toolbar: [ 'bold', 'italic', 'link', '|', 'heading', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo' ]
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+}

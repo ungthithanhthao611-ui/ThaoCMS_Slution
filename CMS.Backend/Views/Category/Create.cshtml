@@ -27,3 +27,16 @@
         <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
     </form>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#Description'), {
+                toolbar: [ 'bold', 'italic', 'link', '|', 'heading', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo' ]
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+}

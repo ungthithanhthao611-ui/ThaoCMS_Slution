@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ProductCard from '../../components/ProductCard';
 import productService from '../../services/productService';
 
@@ -23,6 +23,11 @@ const ProductGrid = () => {
     const [saleProducts, setSaleProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const latestRef = useRef(null);
+    const saleRef = useRef(null);
+    const [latestVisible, setLatestVisible] = useState(false);
+    const [saleVisible, setSaleVisible] = useState(false);
+
     useEffect(() => {
         const loadProducts = async () => {
             try {
@@ -41,6 +46,33 @@ const ProductGrid = () => {
         loadProducts();
     }, []);
 
+    useEffect(() => {
+        if (loading) return;
+
+        const observerOptions = {
+            threshold: 0.1, // Kích hoạt khi thấy 10% phần tử
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.target === latestRef.current && entry.isIntersecting) {
+                    setLatestVisible(true);
+                }
+                if (entry.target === saleRef.current && entry.isIntersecting) {
+                    setSaleVisible(true);
+                }
+            });
+        }, observerOptions);
+
+        if (latestRef.current) observer.observe(latestRef.current);
+        if (saleRef.current) observer.observe(saleRef.current);
+
+        return () => {
+            if (latestRef.current) observer.unobserve(latestRef.current);
+            if (saleRef.current) observer.unobserve(saleRef.current);
+        };
+    }, [loading]);
+
     if (loading) return (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#aaa' }}>
             <i className="fa fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
@@ -48,13 +80,53 @@ const ProductGrid = () => {
     );
 
     return (
-        <div className="boxhome" style={{ backgroundColor: '#f8f8f8', padding: '60px 0' }}>
+        <div className="boxhome" style={{ backgroundColor: '#f8f8f8', padding: '60px 0', overflow: 'hidden' }}>
+            <style>{`
+                @keyframes slideInTitle {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-100px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+
+                @keyframes slideInGrid {
+                    from {
+                        opacity: 0;
+                        transform: translateY(60px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .scroll-title {
+                    opacity: 0;
+                }
+                .scroll-title.active {
+                    animation: slideInTitle 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                .scroll-grid {
+                    opacity: 0;
+                }
+                .scroll-grid.active {
+                    animation: slideInGrid 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    animation-delay: 0.3s; /* Chạy sau khi tiêu đề đã trượt xong */
+                }
+            `}</style>
             <div className="wrapper">
 
                 {/* ===== THỰC ĐƠN MỚI NHẤT ===== */}
-                <div style={{ marginBottom: '60px' }}>
-                    <SectionTitle icon="NEW" title="Thực đơn mới nhất" color="#28a745" />
-                    <div style={{
+                <div ref={latestRef} style={{ marginBottom: '60px' }}>
+                    <div className={`scroll-title ${latestVisible ? 'active' : ''}`}>
+                        <SectionTitle icon="NEW" title="Thực đơn mới nhất" color="#28a745" />
+                    </div>
+                    <div className={`scroll-grid ${latestVisible ? 'active' : ''}`} style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
                         gap: '20px'
@@ -69,9 +141,11 @@ const ProductGrid = () => {
                 </div>
 
                 {/* ===== SẢN PHẨM SALE ===== */}
-                <div>
-                    <SectionTitle icon="SALE" title="Sản phẩm Sale" color="#b22830" />
-                    <div style={{
+                <div ref={saleRef}>
+                    <div className={`scroll-title ${saleVisible ? 'active' : ''}`}>
+                        <SectionTitle icon="SALE" title="Sản phẩm Sale" color="#b22830" />
+                    </div>
+                    <div className={`scroll-grid ${saleVisible ? 'active' : ''}`} style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
                         gap: '20px'

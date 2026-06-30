@@ -1,4 +1,4 @@
-﻿/*Sinh vien:Ung Thị Thanh Thảo 
+/*Sinh vien:Ung Thị Thanh Thảo 
  Ma sv:2123110174
 Lop:CCQ2311E
 Mo ta: Thực hiện quản lý danh sách khách hàng,
@@ -36,5 +36,7 @@ namespace CMS.Data.Entities
         public string Password { get; set; } // Lưu mật khẩu thô theo yêu cầu tối giản
 
         public virtual ICollection<Order>? Orders { get; set; }
+
+        public virtual ICollection<Review>? Reviews { get; set; }
     }
 }

@@ -22,6 +22,7 @@ namespace CMS.Data
         public DbSet<Banner> Banners { get; set; }
         public DbSet<Menu> Menus { get; set; }
         public DbSet<About> Abouts { get; set; }
+        public DbSet<Review> Reviews { get; set; }
     }
 }
 

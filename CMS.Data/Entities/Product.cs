@@ -35,9 +35,17 @@ namespace CMS.Data.Entities
         public bool IsBestSeller { get; set; } = false;
         public bool IsPromo { get; set; } = false;
 
+        [Range(0, double.MaxValue)]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? PriceSizeM { get; set; }
+
         public int CategoryProductId { get; set; }
 
         [ForeignKey("CategoryProductId")]
         public virtual CategoryProduct? CategoryProduct { get; set; }
+
+        public virtual ICollection<Review>? Reviews { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
     }
 }

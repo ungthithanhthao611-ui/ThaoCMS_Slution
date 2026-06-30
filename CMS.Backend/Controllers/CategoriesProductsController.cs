@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CMS.Data; 
+using CMS.Data;
+using CMS.Backend.DTOs;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace CMS.Backend.Controllers
 {
@@ -28,6 +30,7 @@ namespace CMS.Backend.Controllers
         /// Đường dẫn gọi dữ liệu: GET https://localhost:xxxx/api/CategoriesProducts
         /// </summary>
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<CategoryProductOutDTO>), 200)]
         public async Task<IActionResult> GetAll()
         {
             try
