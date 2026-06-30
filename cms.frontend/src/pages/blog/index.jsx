@@ -51,7 +51,7 @@ function Blog() {
                     {/* Khối tiêu đề trang */}
                     <div className="text-center my-4 py-3 bg-white rounded shadow-sm">
                         <h3 className="font-weight-bold text-uppercase m-0" style={{ color: '#005088', letterSpacing: '1px' }}>
-                            Tạp Chí Thời Trang ThaiCMS
+                            Tạp Chí Thời Trang ThaoCMS
                         </h3>
                         <p className="text-muted small m-0 font-italic mt-1">Cập nhật cẩm nang phối đồ và xu hướng mặc đẹp mới nhất từ các nhà thiết kế</p>
                     </div>

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import axiosClient, { IMAGE_BASE } from '../api/axiosClient';
+import reviewService from '../services/reviewService';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import ProductCard from '../components/ProductCard';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -15,18 +17,37 @@ const ProductDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const [added, setAdded] = useState(false);
 
+    // Trạng thái Đánh giá & Sản phẩm liên quan & Chọn Size
+    const [reviews, setReviews] = useState([]);
+    const [relatedProducts, setRelatedProducts] = useState([]);
+    const [selectedSize, setSelectedSize] = useState('S');
+
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchProductAndReviews = async () => {
             try {
                 const data = await axiosClient.get(`/Products/${id}`);
                 setProduct(data);
+
+                // Tải đánh giá
+                const revs = await reviewService.getReviewsByProduct(id);
+                setReviews(revs || []);
+
+                // Tải sản phẩm liên quan
+                if (data.categoryProductId) {
+                    const related = await axiosClient.get(`/Products/category/${data.categoryProductId}`);
+                    if (Array.isArray(related)) {
+                        // Lọc bỏ sản phẩm hiện tại, lấy tối đa 4 sản phẩm
+                        const filtered = related.filter(p => p.id !== data.id).slice(0, 4);
+                        setRelatedProducts(filtered);
+                    }
+                }
             } catch (error) {
-                console.error("Lỗi tải chi tiết sản phẩm:", error);
+                console.error("Lỗi tải chi tiết sản phẩm hoặc đánh giá:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchProduct();
+        fetchProductAndReviews();
     }, [id]);
 
     const handleAddToCart = () => {
@@ -39,7 +60,7 @@ const ProductDetail = () => {
             alert(`Không thể thêm vào giỏ hàng vì vượt quá số lượng trong kho (Còn lại ${product.stockQuantity} sản phẩm)!`);
             return;
         }
-        addToCart(product, q);
+        addToCart(product, q, selectedSize);
         setAdded(true);
         setTimeout(() => {
             setAdded(false);
@@ -88,7 +109,7 @@ const ProductDetail = () => {
     return (
         <>
             <Header />
-            <div style={{ backgroundColor: '#f5f5f5', minHeight: '80vh', padding: '40px 0' }}>
+            <div style={{ background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)', minHeight: '80vh', padding: '50px 0' }}>
                 <div className="wrapper">
                     {/* Breadcrumb */}
                     <div style={{ marginBottom: '20px', fontSize: '0.9rem', color: '#888' }}>
@@ -100,15 +121,15 @@ const ProductDetail = () => {
                     </div>
 
                     <div style={{
-                        background: 'white', borderRadius: '20px',
-                        overflow: 'hidden', boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
-                        display: 'flex', flexWrap: 'wrap'
+                        background: 'white', borderRadius: '30px',
+                        overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.06)',
+                        display: 'flex', flexWrap: 'wrap', transition: 'all 0.3s ease'
                     }}>
                         {/* Ảnh sản phẩm */}
                         <div style={{
-                            flex: '1 1 420px', backgroundColor: '#fafafa',
+                            flex: '1 1 420px', background: 'linear-gradient(to bottom right, #fcfcfc, #f1f1f1)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            position: 'relative', minHeight: '400px'
+                            position: 'relative', minHeight: '400px', padding: '20px'
                         }}>
                             {/* Badge % giảm góc trên trái ảnh */}
                             {hasSale && (
@@ -131,7 +152,12 @@ const ProductDetail = () => {
                                 <img
                                     src={imageUrl}
                                     alt={product.name}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', maxHeight: '500px' }}
+                                    style={{ 
+                                        width: '100%', height: '100%', objectFit: 'contain', maxHeight: '500px',
+                                        transition: 'transform 0.4s ease, filter 0.4s', cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.filter = 'drop-shadow(0 15px 25px rgba(0,0,0,0.15))'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.filter = 'none'; }}
                                 />
                             ) : (
                                 <i className="fa fa-coffee" style={{ fontSize: '10rem', color: '#ddd' }}></i>
@@ -139,44 +165,65 @@ const ProductDetail = () => {
                         </div>
 
                         {/* Chi tiết sản phẩm */}
-                        <div style={{ flex: '1 1 400px', padding: '44px 40px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                            <h1 style={{ fontWeight: '900', color: '#1a1a1a', fontSize: '2rem', margin: 0, lineHeight: 1.3 }}>
+                        <div style={{ flex: '1 1 400px', padding: '50px 45px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
+                            <h1 style={{ 
+                                fontWeight: '900', fontSize: '2.5rem', margin: 0, lineHeight: 1.2,
+                                background: 'linear-gradient(45deg, #1a1a1a, #555)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+                            }}>
                                 {product.name}
                             </h1>
 
                             {/* Giá */}
                             {hasSale ? (
-                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
-                                    <span style={{ fontSize: '2rem', fontWeight: '900', color: '#c0392b' }}>
-                                        {formatVND(product.salePrice)}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', background: '#fff', padding: '15px 20px', borderRadius: '15px', border: '1px solid #f0f0f0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                                    <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#b22830' }}>
+                                        {formatVND(selectedSize === 'M'
+                                            ? (product.priceSizeM && product.priceSizeM > 0
+                                                ? Math.round(product.priceSizeM * (product.salePrice / product.price))
+                                                : product.salePrice + 10000)
+                                            : product.salePrice)}
                                     </span>
-                                    <span style={{ fontSize: '1.1rem', color: '#aaa', textDecoration: 'line-through' }}>
-                                        {formatVND(product.price)}
+                                    <span style={{ fontSize: '1.2rem', color: '#aaa', textDecoration: 'line-through', fontWeight: '600' }}>
+                                        {formatVND(selectedSize === 'M'
+                                            ? (product.priceSizeM && product.priceSizeM > 0
+                                                ? product.priceSizeM
+                                                : product.price + 10000)
+                                            : product.price)}
                                     </span>
                                     <span style={{
-                                        background: '#fff0ef', color: '#c0392b',
+                                        background: 'linear-gradient(135deg, #ffc4be, #ff9e99)', color: '#b22830',
                                         fontWeight: '800', fontSize: '0.85rem',
-                                        padding: '4px 10px', borderRadius: '20px',
-                                        border: '1.5px solid #ffc4be'
+                                        padding: '6px 12px', borderRadius: '20px',
+                                        boxShadow: '0 2px 8px rgba(178,40,48,0.2)'
                                     }}>
-                                        Tiết kiệm {formatVND(product.price - product.salePrice)}
+                                        Tiết kiệm {formatVND(selectedSize === 'M'
+                                            ? (product.priceSizeM && product.priceSizeM > 0
+                                                ? product.priceSizeM - Math.round(product.priceSizeM * (product.salePrice / product.price))
+                                                : product.price - product.salePrice)
+                                            : product.price - product.salePrice)}
                                     </span>
                                 </div>
                             ) : (
-                                <div style={{ fontSize: '2rem', fontWeight: '900', color: '#b22830' }}>
-                                    {formatVND(product.price)}
+                                <div style={{ fontSize: '2.4rem', fontWeight: '900', color: '#b22830', textShadow: '0 2px 4px rgba(178,40,48,0.1)' }}>
+                                    {formatVND(selectedSize === 'M'
+                                        ? (product.priceSizeM && product.priceSizeM > 0
+                                            ? product.priceSizeM
+                                            : product.price + 10000)
+                                        : product.price)}
                                 </div>
                             )}
 
                             {/* Mô tả */}
                             {product.description && (
-                                <div style={{
-                                    color: '#555', lineHeight: '1.7', fontSize: '0.98rem',
-                                    backgroundColor: '#fafafa', padding: '16px 18px',
-                                    borderRadius: '10px', borderLeft: '4px solid #b22830'
-                                }}>
-                                    {product.description}
-                                </div>
+                                <div 
+                                    style={{
+                                        color: '#555', lineHeight: '1.8', fontSize: '1.05rem',
+                                        backgroundColor: '#fdfdfd', padding: '20px 24px',
+                                        borderRadius: '16px', borderLeft: '5px solid #b22830',
+                                        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.02)'
+                                    }}
+                                    dangerouslySetInnerHTML={{ __html: product.description }}
+                                />
                             )}
 
                             {/* Kho */}
@@ -190,7 +237,65 @@ const ProductDetail = () => {
                                 {product.stockQuantity > 0 ? `Còn ${product.stockQuantity} sản phẩm` : 'Hết hàng'}
                             </div>
 
-                            <hr style={{ margin: '4px 0', borderColor: '#f0f0f0' }} />
+                            {/* Bộ chọn Size */}
+                            {product.priceSizeM && product.priceSizeM > 0 && (
+                                <div style={{ margin: '15px 0' }}>
+                                    <label style={{ display: 'block', fontWeight: '800', fontSize: '0.9rem', color: '#333', marginBottom: '12px', letterSpacing: '0.5px' }}>
+                                        CHỌN SIZE ĐỒ UỐNG:
+                                    </label>
+                                    <div style={{ display: 'flex', gap: '12px' }}>
+                                        {[
+                                            { code: 'S', label: 'Size Nhỏ (S)', priceInfo: 'Giá chuẩn' },
+                                            { code: 'M', label: 'Size Vừa (M)', priceInfo: `+${new Intl.NumberFormat('vi-VN').format(product.priceSizeM - product.price)} ₫` }
+                                        ].map(sizeOpt => {
+                                            const isSelected = selectedSize === sizeOpt.code;
+                                            return (
+                                                <button
+                                                    key={sizeOpt.code}
+                                                    onClick={() => setSelectedSize(sizeOpt.code)}
+                                                    style={{
+                                                        flex: '1',
+                                                        padding: '12px 10px',
+                                                        borderRadius: '14px',
+                                                        border: isSelected ? '2px solid #b22830' : '1.5px solid #edf2f7',
+                                                        backgroundColor: isSelected ? '#fff5f5' : '#fafbfc',
+                                                        color: isSelected ? '#b22830' : '#4a5568',
+                                                        fontWeight: '800',
+                                                        fontSize: '0.9rem',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s ease',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'center',
+                                                        gap: '4px',
+                                                        boxShadow: isSelected ? '0 6px 15px rgba(178,40,48,0.12)' : 'none',
+                                                        outline: 'none'
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        if (!isSelected) {
+                                                            e.currentTarget.style.borderColor = '#b22830';
+                                                            e.currentTarget.style.backgroundColor = '#fff';
+                                                        }
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        if (!isSelected) {
+                                                            e.currentTarget.style.borderColor = '#edf2f7';
+                                                            e.currentTarget.style.backgroundColor = '#fafbfc';
+                                                        }
+                                                    }}
+                                                >
+                                                    <span>{sizeOpt.label}</span>
+                                                    <span style={{ fontSize: '0.72rem', fontWeight: '600', color: isSelected ? '#b22830' : '#a0aec0' }}>
+                                                        {sizeOpt.priceInfo}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            <hr style={{ margin: '15px 0', borderColor: '#f0f0f0' }} />
 
                             {/* Số lượng + nút thêm giỏ */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
@@ -264,20 +369,22 @@ const ProductDetail = () => {
                                     onClick={handleAddToCart}
                                     disabled={product.stockQuantity === 0}
                                     style={{
-                                        flex: 1, minWidth: '180px',
+                                        flex: 1, minWidth: '200px', height: '54px',
                                         background: product.stockQuantity === 0
                                             ? '#ccc'
                                             : added
                                                 ? 'linear-gradient(135deg, #28a745, #20963a)'
-                                                : 'linear-gradient(135deg, #c0392b, #962d22)',
+                                                : 'linear-gradient(135deg, #b22830, #ff4b4b)',
                                         color: 'white', border: 'none',
-                                        padding: '14px 24px', borderRadius: '10px',
-                                        fontWeight: '800', fontSize: '1rem',
-                                        textTransform: 'uppercase', letterSpacing: '1px',
+                                        padding: '0 24px', borderRadius: '14px',
                                         cursor: product.stockQuantity === 0 ? 'not-allowed' : 'pointer',
-                                        transition: 'all 0.3s',
-                                        boxShadow: product.stockQuantity === 0 ? 'none' : '0 6px 18px rgba(192,57,43,0.35)'
+                                        fontSize: '1.1rem', fontWeight: '900',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                                        boxShadow: added ? '0 8px 20px rgba(40,167,69,0.3)' : '0 8px 25px rgba(178,40,48,0.4)',
+                                        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                                     }}
+                                    onMouseEnter={e => { if (product.stockQuantity > 0) e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                                    onMouseLeave={e => { if (product.stockQuantity > 0) e.currentTarget.style.transform = 'translateY(0)'; }}
                                 >
                                     {added
                                         ? <><i className="fa fa-check" style={{ marginRight: '8px' }}></i>Đã thêm vào giỏ!</>
@@ -285,6 +392,84 @@ const ProductDetail = () => {
                                     }
                                 </button>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* SẢN PHẨM LIÊN QUAN */}
+                    {relatedProducts.length > 0 && (
+                        <div style={{ marginTop: '50px', marginBottom: '40px' }}>
+                            <h3 style={{
+                                fontWeight: '900',
+                                fontSize: '2rem',
+                                color: '#1a1a1a',
+                                marginBottom: '30px',
+                                position: 'relative',
+                                display: 'inline-block',
+                                paddingBottom: '10px'
+                            }}>
+                                Sản Phẩm Liên Quan
+                                <span style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    left: 0,
+                                    width: '80px',
+                                    height: '4px',
+                                    background: 'linear-gradient(90deg, #b22830, #ff4b4b)',
+                                    borderRadius: '2px'
+                                }}></span>
+                            </h3>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                                gap: '30px',
+                                marginTop: '10px'
+                            }}>
+                                {relatedProducts.map(item => (
+                                    <div key={item.id}>
+                                        <ProductCard item={item} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* KHU VỰC ĐÁNH GIÁ SẢN PHẨM */}
+                    <div style={{ marginTop: '40px', background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}>
+                        <h3 style={{ fontWeight: '800', borderBottom: '2px solid #f0f0f0', paddingBottom: '15px', marginBottom: '20px' }}>Đánh giá sản phẩm</h3>
+
+                        <div>
+                            {reviews.length === 0 ? (
+                                <p style={{ color: '#888', fontStyle: 'italic' }}>Chưa có đánh giá nào cho sản phẩm này.</p>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    {reviews.map(rev => (
+                                        <div key={rev.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#ccc', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                                                    {rev.customerName.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 'bold' }}>{rev.customerName}</div>
+                                                    <div style={{ color: '#ffc107', fontSize: '14px' }}>
+                                                        {[1, 2, 3, 4, 5].map(star => (
+                                                            <i key={star} className={`fa ${star <= rev.rating ? 'fa-star' : 'fa-star-o'}`}></i>
+                                                        ))}
+                                                        <span style={{ color: '#999', fontSize: '12px', marginLeft: '10px' }}>{new Date(rev.createdDate).toLocaleDateString('vi-VN')}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {rev.comment && <p style={{ margin: '10px 0', color: '#444' }}>{rev.comment}</p>}
+                                            {rev.imageUrl && (
+                                                <img 
+                                                    src={rev.imageUrl.startsWith('http') ? rev.imageUrl : `${IMAGE_BASE}${rev.imageUrl.startsWith('/') ? '' : '/'}${rev.imageUrl}`} 
+                                                    alt="Review" 
+                                                    style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px' }}
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

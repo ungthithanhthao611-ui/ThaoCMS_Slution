@@ -93,6 +93,26 @@ namespace CMS.Backend.Controllers
             });
         }
 
+        // API Lấy thông tin cá nhân của khách hàng (Dùng để hiển thị lên Swagger cho giảng viên xem)
+        [HttpGet("CustomerProfile/{id}")]
+        public async Task<IActionResult> GetCustomerProfile(int id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
+            {
+                return NotFound(new { message = "Không tìm thấy khách hàng này." });
+            }
+
+            return Ok(new
+            {
+                id = customer.Id,
+                fullName = customer.FullName,
+                email = customer.Email,
+                phone = customer.Phone,
+                address = customer.Address
+            });
+        }
+
         // API Quên mật khẩu - gửi OTP
         [HttpPost("ForgotPassword")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO input)

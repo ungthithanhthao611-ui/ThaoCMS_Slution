@@ -17,7 +17,14 @@ builder.Services.AddControllersWithViews();
 
 // [BUỔI 6] Đăng ký dịch vụ lõi giúp hệ thống tự động bóc tách thông tin Endpoint phục vụ Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // -- Kích hoạt bộ sinh tài liệu API Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    c.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        // Chỉ thêm các controller có attribute [ApiController] vào Swagger
+        return apiDesc.ActionDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(Microsoft.AspNetCore.Mvc.ApiControllerAttribute));
+    });
+}); // -- Kích hoạt bộ sinh tài liệu API Swagger
 
 // [BUỔI 7] Giai đoạn 1: Đăng ký chính sách CORS
 builder.Services.AddCors(options => {
@@ -43,7 +50,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ThaiCMS Web API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ThaoCMS Web API v1");
     c.RoutePrefix = "swagger"; // -- Đường dẫn truy cập mặc định sẽ là /swagger
 });
 

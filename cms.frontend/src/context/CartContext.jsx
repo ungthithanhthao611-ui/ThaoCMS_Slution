@@ -35,34 +35,48 @@ export const CartProvider = ({ children }) => {
     }, [cartItems]);
 
     // Thêm sản phẩm vào giỏ (nếu đã có thì cộng dồn số lượng)
-    const addToCart = (product, quantityToAdd = 1) => {
+    const addToCart = (product, quantityToAdd = 1, selectedSize = 'S') => {
         setCartItems(prev => {
-            const existing = prev.find(item => item.id === product.id);
+            const basePrice = product.salePrice && product.salePrice > 0 && product.salePrice < product.price ? product.salePrice : product.price;
+            let sizePrice = basePrice;
+            if (selectedSize === 'M') {
+                if (product.priceSizeM && product.priceSizeM > 0) {
+                    sizePrice = product.priceSizeM;
+                    if (product.salePrice && product.salePrice > 0 && product.salePrice < product.price) {
+                        const discountRatio = product.salePrice / product.price;
+                        sizePrice = Math.round(product.priceSizeM * discountRatio);
+                    }
+                } else {
+                    sizePrice = basePrice + 10000;
+                }
+            }
+
+            const existing = prev.find(item => item.id === product.id && (item.selectedSize || 'S') === selectedSize);
             if (existing) {
                 return prev.map(item =>
-                    item.id === product.id
+                    (item.id === product.id && (item.selectedSize || 'S') === selectedSize)
                         ? { ...item, quantity: item.quantity + quantityToAdd }
                         : item
                 );
             }
-            return [...prev, { ...product, quantity: quantityToAdd }];
+            return [...prev, { ...product, price: sizePrice, selectedSize, quantity: quantityToAdd }];
         });
     };
 
     // Xóa 1 sản phẩm khỏi giỏ
-    const removeFromCart = (productId) => {
-        setCartItems(prev => prev.filter(item => item.id !== productId));
+    const removeFromCart = (productId, size = 'S') => {
+        setCartItems(prev => prev.filter(item => !(item.id === productId && (item.selectedSize || 'S') === size)));
     };
 
     // Cập nhật số lượng (nếu về 0 thì xóa)
-    const updateQuantity = (productId, quantity) => {
+    const updateQuantity = (productId, quantity, size = 'S') => {
         if (quantity <= 0) {
-            removeFromCart(productId);
+            removeFromCart(productId, size);
             return;
         }
         setCartItems(prev =>
             prev.map(item =>
-                item.id === productId ? { ...item, quantity } : item
+                (item.id === productId && (item.selectedSize || 'S') === size) ? { ...item, quantity } : item
             )
         );
     };

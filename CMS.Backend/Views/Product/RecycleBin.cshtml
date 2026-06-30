@@ -1,0 +1,106 @@
+@model X.PagedList.IPagedList<CMS.Data.Entities.Product>
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Web.Common
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thùng rác Sản phẩm";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>THÙNG RÁC SẢN PHẨM</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary shadow-sm">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    @if (TempData["SuccessMsg"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMsg"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMsg"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Lỗi:</strong> @TempData["ErrorMsg"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th style="width: 70px;">ID</th>
+                <th>Hình ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Loại sản phẩm</th>
+                <th>Giá bán</th>
+                <th style="width: 120px;">Kho</th>
+                <th style="width: 200px;" class="text-center">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="text-muted fw-bold">@item.Id</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" alt="@item.Name" class="rounded shadow-sm" style="width: 60px; height: 60px; object-fit: cover;" onerror="this.onerror=null; this.src='https://placehold.co/60x60/png?text=No+Image';" />
+                        }
+                        else
+                        {
+                            <img src="https://placehold.co/60x60/png?text=No+Image" alt="No Image" class="rounded shadow-sm" style="width: 60px; height: 60px; object-fit: cover;" />
+                        }
+                    </td>
+                    <td>
+                        <span class="fw-bold d-block text-secondary">@item.Name</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">@(item.CategoryProduct?.Name ?? "Không có loại")</span>
+                    </td>
+                    <td>
+                        <div class="text-secondary text-decoration-line-through" style="font-size: 0.85rem;">@item.Price.ToString("#,##0") VNĐ</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">@item.StockQuantity</span>
+                    </td>
+                    <td class="text-center">
+                        <a asp-action="Restore" asp-route-id="@item.Id" class="btn btn-sm btn-success me-1" title="Khôi phục sản phẩm này">
+                            <i class="bi bi-arrow-counterclockwise"></i> Khôi phục
+                        </a>
+                        <a asp-action="HardDelete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" onclick="return confirm('CẢNH BÁO: Sản phẩm sẽ bị xóa vĩnh viễn khỏi CSDL và không thể khôi phục. Bạn có chắc chắn?')" title="Xóa vĩnh viễn">
+                            <i class="bi bi-trash-fill"></i> Xóa vĩnh viễn
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted my-5">
+            <i class="bi bi-trash display-3"></i>
+            <p class="mt-3">Thùng rác trống.</p>
+        </div>
+    }
+
+    <!-- Nút phân trang (Pagination) -->
+    <div class="d-flex justify-content-center mt-4">
+        @Html.PagedListPager(Model, page => Url.Action("RecycleBin", new { page }), new PagedListRenderOptions
+        {
+            LiElementClasses = new string[] { "page-item" },
+            PageClasses = new string[] { "page-link" },
+            DisplayLinkToFirstPage = X.PagedList.Web.Common.PagedListDisplayMode.Always,
+            DisplayLinkToLastPage = X.PagedList.Web.Common.PagedListDisplayMode.Always,
+            DisplayLinkToPreviousPage = X.PagedList.Web.Common.PagedListDisplayMode.Always,
+            DisplayLinkToNextPage = X.PagedList.Web.Common.PagedListDisplayMode.Always,
+            MaximumPageNumbersToDisplay = 5
+        })
+    </div>
+</div>

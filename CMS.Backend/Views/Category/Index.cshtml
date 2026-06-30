@@ -8,9 +8,9 @@
     ViewData["Title"] = "Danh sách danh mục tin tức";
 }
 
-<div class="container mt-4">
+<div>
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary fw-bold">DANH SÁCH DANH MỤC TIN TỨC</h2>
+        <h2>DANH SÁCH DANH MỤC TIN TỨC</h2>
         @* Thẻ <a> sử dụng thuộc tính (Tag Helper) 'asp-action="Create"' để tạo link trỏ tới hàm Create trong CategoryController *@
         <a asp-action="Create" class="btn btn-success">
             + Thêm danh mục tin tức mới
@@ -18,8 +18,8 @@
     </div>
     <hr />
 
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark">
+    <table class="table">
+        <thead>
             <tr>
                 <th>Id</th>
                 <th>Tên danh mục tin tức</th>
@@ -35,7 +35,7 @@
                     @* In ra Id, Name và Description của từng đối tượng item *@
                     <td>@item.Id</td>
                     <td>@item.Name</td>
-                    <td>@item.Description</td>
+                    <td>@Html.Raw(item.Description)</td>
                     <td>
                         @* Tạo link sang trang Edit/Delete, đồng thời gắn thêm tham số ID vào URL (ví dụ: /Category/Edit/5) bằng 'asp-route-id' *@
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Sửa</a>

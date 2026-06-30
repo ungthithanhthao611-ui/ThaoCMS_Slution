@@ -132,11 +132,31 @@ Hệ thống được xây dựng và tích lũy từng bước qua các buổi 
 *   **Giao diện Khách hàng (Frontend):** Xây dựng trang `About.jsx` fetch nội dung giới thiệu từ API và hiển thị một cách chuyên nghiệp.
 *   **Tinh chỉnh toàn hệ thống:** Review và cải thiện Layout Admin, thêm các liên kết menu (Menus/Banners) và hoàn thiện các chức năng cuối cùng của hệ thống CMS.
 
+### 📅 Buổi 11: Phát triển Hệ thống Đánh giá sản phẩm (Product Reviews) & Tải lên hình ảnh minh họa
+*   **Bảng dữ liệu Review (Entity & Migration):**
+    *   Thiết lập thực thể `Review.cs` chứa các thông tin cốt lõi: `Rating` (Số sao từ 1 đến 5), `Comment` (Nội dung bình luận), `ImageUrl` (Hình ảnh thực tế đính kèm), và `CreatedDate` (Thời gian đánh giá).
+    *   Tạo liên kết khóa ngoại với bảng `Product` và `Customer` trong `ApplicationDbContext`. Chạy Migration cập nhật CSDL thành công.
+*   **Xây dựng RESTful Web API (`ReviewsController`):**
+    *   `GET /api/Reviews/product/{productId}`: Lấy danh sách đánh giá của sản phẩm, bao gồm thông tin khách hàng.
+    *   `GET /api/Reviews/customer/{customerId}`: Lấy danh sách các đánh giá khách hàng đã thực hiện để phục vụ hiển thị trên trang Profile cá nhân.
+    *   `GET /api/Reviews/check-can-review`: Logic kiểm tra điều kiện đánh giá chặt chẽ. Khách hàng chỉ được phép đánh giá khi:
+        1. Đã từng đặt mua sản phẩm này.
+        2. Đơn đặt hàng liên quan đã được chuyển sang trạng thái hoàn thành (`Status = 2`).
+        3. Chưa từng viết đánh giá cho sản phẩm này (tránh spam đánh giá ảo).
+    *   `POST /api/Reviews`: Tiếp nhận đánh giá mới dưới dạng `multipart/form-data`. Xử lý lưu trữ hình ảnh minh họa đính kèm vào thư mục Server `wwwroot/uploads/reviews/` với tên file GUID bảo mật.
+*   **Tích hợp ReactJS Frontend:**
+    *   **Review Service:** Xây dựng `reviewService.js` xử lý gọi các API đánh giá trên Backend.
+    *   **Trang Chi tiết Sản phẩm (`ProductDetail.jsx`):** Hiển thị danh sách đánh giá từ khách hàng cũ, tính điểm đánh giá trung bình (sao trung bình) kèm số lượng phản hồi trực quan.
+    *   **Trang Hồ sơ Cá nhân (`Profile.jsx`):**
+        *   Tích hợp tab "Đánh giá của tôi" hiển thị lịch sử các sản phẩm đã nhận xét.
+        *   Tại tab "Lịch sử mua hàng", hiển thị nút "Đánh giá" bên cạnh mỗi sản phẩm thuộc đơn hàng đã hoàn thành.
+        *   Thiết kế Modal viết đánh giá với giao diện chọn số sao (1-5), nhập cảm nhận và chọn ảnh tải lên sinh động.
+
 ---
 
-## 📋 4. CHI TIẾT 11 THỰC THỂ CƠ SỞ DỮ LIỆU (ENTITIES)
+## 📋 4. CHI TIẾT 12 THỰC THỂ CƠ SỞ DỮ LIỆU (ENTITIES)
 
-Hệ thống quản lý thông tin thông suốt thông qua 11 bảng dữ liệu chính trong [CMS.Data/Entities](file:///d:/asp/ThaoCMS_Solution/CMS.Data/Entities):
+Hệ thống quản lý thông tin thông suốt thông qua 12 bảng dữ liệu chính trong [CMS.Data/Entities](file:///d:/asp/ThaoCMS_Solution/CMS.Data/Entities):
 
 1.  **`User`**: Lưu thông tin tài khoản đăng nhập quản trị (ID, Username, PasswordHash, FullName, Role).
 2.  **`Customer`**: Lưu thông tin khách hàng đăng ký mua sắm (ID, FullName, Email, Password, Phone, Address).
@@ -149,6 +169,7 @@ Hệ thống quản lý thông tin thông suốt thông qua 11 bảng dữ liệ
 9.  **`Banner`**: Quản lý hình ảnh quảng cáo trình chiếu trên trang chủ (ID, Title, Description, ImageUrl, LinkUrl).
 10. **`Menu`**: Cấu hình các mục điều hướng nhanh trên website (ID, Name, Url, OrderIndex).
 11. **`About`**: Lưu trữ thông tin giới thiệu về cửa hàng/công ty (ID, Title, Content, ImageUrl).
+12. **`Review`**: Lưu thông tin đánh giá và phản hồi của khách hàng về sản phẩm (ID, ProductId, CustomerId, Rating, Comment, ImageUrl, CreatedDate).
 
 ---
 

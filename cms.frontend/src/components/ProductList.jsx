@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import productService from '../services/productService';
+import categoryProductService from '../services/categoryProductService';
 import ProductCard from './ProductCard';
 import { IMAGE_BASE } from '../api/axiosClient';
 
-const ProductList = ({ categoryId, layout, limit, minPrice, maxPrice, search }) => {
+const ProductList = ({ categoryId, layout, limit, minPrice, maxPrice, search, filterType }) => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+
+    useEffect(() => {
+        categoryProductService.getAllCategoryProducts()
+            .then(setCategories)
+            .catch(console.error);
+    }, []);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -107,19 +115,26 @@ const ProductList = ({ categoryId, layout, limit, minPrice, maxPrice, search }) 
     }
 
     let displayedProducts = products;
+
+    if (filterType === 'sale') {
+        displayedProducts = displayedProducts.filter(item => item.salePrice && item.salePrice < item.price);
+    } else if (filterType === 'new') {
+        // Assume already sorted by newest from API
+        displayedProducts = displayedProducts.slice(0, 12);
+    }
     
     // Pagination logic
     const itemsPerPage = limit || 8; // Default 8 items per page for frontend
 
-    const totalPages = Math.ceil(products.length / itemsPerPage);
+    const totalPages = Math.ceil(displayedProducts.length / itemsPerPage);
 
     // Apply pagination if limit is not provided (meaning it's not the abbreviated homepage view)
     if (!limit) {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        displayedProducts = products.slice(startIndex, endIndex);
+        displayedProducts = displayedProducts.slice(startIndex, endIndex);
     } else {
-        displayedProducts = products.slice(0, limit);
+        displayedProducts = displayedProducts.slice(0, limit);
     }
 
     const handlePageChange = (page) => {
@@ -131,11 +146,14 @@ const ProductList = ({ categoryId, layout, limit, minPrice, maxPrice, search }) 
     return (
         <div>
             <div className="product-grid">
-                {displayedProducts.map((item) => (
-                    <div className="product-grid-item" key={item.id}>
-                        <ProductCard item={item} />
-                    </div>
-                ))}
+                {displayedProducts.map((item) => {
+                    const cat = categories.find(c => c.id === item.categoryProductId);
+                    return (
+                        <div className="product-grid-item" key={item.id}>
+                            <ProductCard item={item} categoryName={cat?.name} categoryImageUrl={cat?.imageUrl} />
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Pagination Controls */}

@@ -1,65 +1,255 @@
-@model IEnumerable<CMS.Data.Entities.Post>
-
 @inject CMS.Data.ApplicationDbContext DbContext
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Trang chủ - ThaoCMS";
-    var pendingOrders = DbContext.Orders.Where(o => o.Status == 0).ToList();
+    ViewData["Title"] = "Bảng Điều Khiển - Cà Phê Thảo";
+
+    var pendingOrdersCount = DbContext.Orders.Count(o => o.Status == 0);
+    var totalOrders = DbContext.Orders.Count();
+    var totalRevenue = DbContext.OrderDetails.Sum(od => (decimal?)(od.Quantity * od.UnitPrice)) ?? 0;
+    var totalProducts = DbContext.Products.Count();
+    var totalCustomers = DbContext.Customers.Count();
+
+    // Dữ liệu thật cho biểu đồ: Doanh thu 7 ngày gần nhất
+    var chartLabels = new List<string>();
+    var chartData = new List<decimal>();
+    
+    var today = DateTime.Today;
+    var startDate = today.AddDays(-6);
+    
+    // Lấy danh sách ID đơn hàng và ngày đặt trong 7 ngày qua
+    var recentOrders = DbContext.Orders
+        .Where(o => o.OrderDate >= startDate)
+        .Select(o => new { o.Id, o.OrderDate })
+        .ToList();
+        
+    var orderIds = recentOrders.Select(o => o.Id).ToList();
+    
+    // Lấy chi tiết đơn hàng tương ứng
+    var recentOrderDetails = DbContext.OrderDetails
+        .Where(od => orderIds.Contains(od.OrderId))
+        .Select(od => new { od.OrderId, od.Quantity, od.UnitPrice })
+        .ToList();
+
+    // Vòng lặp từ 6 ngày trước đến hôm nay
+    for (int i = 6; i >= 0; i--)
+    {
+        var targetDate = today.AddDays(-i);
+        chartLabels.Add(targetDate.ToString("dd/MM")); // e.g. "25/06"
+        
+        // Lấy các Order ID thuộc ngày này
+        var idsInDate = recentOrders
+            .Where(o => o.OrderDate.Date == targetDate)
+            .Select(o => o.Id)
+            .ToList();
+            
+        // Cộng dồn doanh thu
+        decimal dailyRevenue = 0;
+        if (idsInDate.Any())
+        {
+            dailyRevenue = recentOrderDetails
+                .Where(od => idsInDate.Contains(od.OrderId))
+                .Sum(od => (decimal)(od.Quantity * od.UnitPrice));
+        }
+        
+        chartData.Add(dailyRevenue);
+    }
 }
 
-<div class="container mt-4">
-    @if (pendingOrders.Any())
+<div>
+    @if (pendingOrdersCount > 0)
     {
-        <div class="alert alert-warning alert-dismissible fade show shadow-sm d-flex align-items-center mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill fs-3 text-warning me-3"></i>
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm d-flex align-items-center mb-4" role="alert" style="background-color: #fff3cd; border-color: #d4a373;">
+            <i class="bi bi-bell-fill fs-3 text-warning me-3"></i>
             <div>
-                <h5 class="alert-heading mb-1 fw-bold">🔔 THÔNG BÁO ĐƠN HÀNG MỚI!</h5>
-                <p class="mb-0">Hệ thống đang có <strong>@pendingOrders.Count</strong> đơn hàng mới ở trạng thái chờ duyệt. Vui lòng bấm vào <a href="/Order" class="alert-link text-decoration-underline fw-bold text-dark">Quản lý Đơn hàng</a> để kiểm tra và duyệt đơn.</p>
+                <h5 class="alert-heading mb-1 fw-bold" style="color: #664d03;">🔔 THÔNG BÁO ĐƠN HÀNG MỚI!</h5>
+                <p class="mb-0" style="color: #664d03;">Hệ thống đang có <strong>@pendingOrdersCount</strong> đơn hàng mới ở trạng thái chờ duyệt. Vui lòng bấm vào <a href="/Order" class="alert-link text-decoration-underline fw-bold">Quản lý Đơn hàng</a> để kiểm tra và duyệt đơn.</p>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold text-danger">TIN TỨC MỚI NHẤT</h1>
-        <p class="text-muted fs-5 mb-3">Tổng hợp 3 bài viết mới nhất từ hệ thống ThaoCMS</p>
-        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 bg-light border rounded-pill shadow-sm mb-3">
-            <span class="badge bg-danger rounded-circle p-2" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;"><i class="bi bi-person-fill"></i></span>
-            <span class="fw-semibold text-dark">Sinh viên:</span>
-            <span class="text-primary fw-bold">Ung Thị Thanh Thảo_2123110174</span>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>BẢNG ĐIỀU KHIỂN CHUNG</h2>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 bg-light border rounded-pill shadow-sm" style="background-color: #fdf8f5 !important; border-color: #ebd8c3 !important;">
+            <span class="badge rounded-circle p-2" style="background: #8b5a2b; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;"><i class="bi bi-person-fill text-white"></i></span>
+            <span class="fw-semibold" style="color: #4a2c11;">Admin:</span>
+            <span class="fw-bold" style="color: #d4a373;">Thảo_2123110174</span>
         </div>
-        <hr />
     </div>
 
-    <div class="row">
-        @foreach (var item in Model)
-        {
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm h-100">
-                    <img src="@item.ImageUrl" class="card-img-top" alt="Thumbnail"
-                         style="height:180px; object-fit:cover;"
-                         onerror="this.onerror=null; this.src='https://placehold.co/400x180?text=No+Image'" />
-                    <div class="card-body">
-                        <span class="badge bg-primary mb-2">@item.Category?.Name</span>
-                        <h5 class="card-title">@item.Title</h5>
-                        <p class="card-text text-muted">
-                            @(item.Content != null && item.Content.Length > 100
-                                ? item.Content.Substring(0, 100) + "..."
-                                : item.Content)
-                        </p>
-                        <a href="/Post/Details/@item.Id" class="btn btn-outline-danger btn-sm">Đọc tiếp →</a>
+    <!-- 4 Cards Thống Kê -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #f2dec5, #ebd8c3); border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px; background: #fff; color: #8b5a2b;">
+                        <i class="bi bi-cash-stack fs-4"></i>
                     </div>
-                    <div class="card-footer text-muted small">
-                        📅 Ngày đăng: @item.CreatedDate.ToString("dd/MM/yyyy")
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase" style="color: #603813 !important;">Tổng Doanh Thu</div>
+                        <h4 class="mb-0 fw-bold" style="color: #4a2c11;">@totalRevenue.ToString("#,##0") đ</h4>
                     </div>
                 </div>
             </div>
-        }
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #fffdfa, #f9eedf); border-radius: 12px; border: 1px solid #ebd8c3 !important;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px; background: #8b5a2b; color: #fff;">
+                        <i class="bi bi-receipt fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Đơn Hàng</div>
+                        <h4 class="mb-0 fw-bold" style="color: #4a2c11;">@totalOrders <span class="fs-6 text-warning">(@pendingOrdersCount chờ)</span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #fffdfa, #f9eedf); border-radius: 12px; border: 1px solid #ebd8c3 !important;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px; background: #d4a373; color: #fff;">
+                        <i class="bi bi-cup-hot fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Sản Phẩm</div>
+                        <h4 class="mb-0 fw-bold" style="color: #4a2c11;">@totalProducts</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #fffdfa, #f9eedf); border-radius: 12px; border: 1px solid #ebd8c3 !important;">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px; background: #603813; color: #fff;">
+                        <i class="bi bi-people fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Khách Hàng</div>
+                        <h4 class="mb-0 fw-bold" style="color: #4a2c11;">@totalCustomers</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    @if (!Model.Any())
-    {
-        <div class="text-center text-muted mt-4">
-            <p>Chưa có bài viết nào. Hãy thêm bài viết từ menu <strong>Post</strong>.</p>
+    <!-- Biểu đồ Chart.js -->
+    <div class="card shadow-sm border-0" style="border-radius: 15px; border: 1px solid #ebd8c3 !important; background: #fffcf9;">
+        <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0" style="color: #4a2c11;"><i class="bi bi-bar-chart-line me-2"></i> BIỂU ĐỒ DOANH THU 7 NGÀY QUA</h5>
+            <button onclick="exportExcel()" class="btn btn-sm btn-success shadow-sm" style="background: linear-gradient(135deg, #2e7d32, #1b5e20); border: none;">
+                <i class="bi bi-file-earmark-excel"></i> Xuất Excel (CSV)
+            </button>
         </div>
-    }
+        <div class="card-body px-4 pb-4">
+            <canvas id="revenueChart" style="height: 350px; width: 100%;"></canvas>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var ctx = document.getElementById('revenueChart').getContext('2d');
+            
+            // Lấy data từ C# Razor (Sử dụng Html.Raw để không bị HTML Encode)
+            var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(chartLabels));
+            var data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(chartData));
+
+            // Gradient cho biểu đồ
+            var gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(212, 163, 115, 0.6)'); // #d4a373
+            gradient.addColorStop(1, 'rgba(212, 163, 115, 0.05)');
+
+            var revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: data,
+                        backgroundColor: gradient,
+                        borderColor: '#8b5a2b',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#603813',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#8b5a2b',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        tension: 0.4 // Làm mượt đường line
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(74, 44, 17, 0.9)',
+                            titleFont: { size: 14, family: 'Inter' },
+                            bodyFont: { size: 14, family: 'Inter' },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let value = context.raw;
+                                    return value.toLocaleString('vi-VN') + ' đ';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { family: 'Inter', size: 12 },
+                                color: '#8b5a2b'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#ebd8c3',
+                                borderDash: [5, 5],
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { family: 'Inter', size: 12 },
+                                color: '#8b5a2b',
+                                callback: function(value) {
+                                    if(value >= 1000000) return (value/1000000) + ' Tr';
+                                    if(value >= 1000) return (value/1000) + ' K';
+                                    return value;
+                                }
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Hàm xuất Excel
+            window.exportExcel = function() {
+                var csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Thêm BOM để Excel đọc được Tiếng Việt
+                csvContent += "Ngày,Doanh Thu (VNĐ)\n";
+                for(var i = 0; i < labels.length; i++) {
+                    csvContent += labels[i] + "," + data[i] + "\n";
+                }
+                var encodedUri = encodeURI(csvContent);
+                var link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "ThongKe_DoanhThu.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+    </script>
+}

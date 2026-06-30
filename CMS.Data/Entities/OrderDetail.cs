@@ -1,4 +1,4 @@
-﻿/*Sinh vien:Ung Thị Thanh Thảo 
+/*Sinh vien:Ung Thị Thanh Thảo 
  Ma sv:2123110174
 Lop:CCQ2311E
 Mo ta: Thực hiện quản lý danh sách Chi tiết đơn hàng
@@ -28,6 +28,9 @@ namespace CMS.Data.Entities
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal UnitPrice { get; set; } // Giá tại thời điểm mua
+
+        [MaxLength(20)]
+        public string? Size { get; set; }
 
         [ForeignKey("OrderId")]
         public virtual Order? Order { get; set; }

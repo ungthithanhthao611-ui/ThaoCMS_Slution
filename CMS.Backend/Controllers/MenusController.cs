@@ -8,6 +8,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CMS.Data;
+using CMS.Backend.DTOs;
 
 namespace CMS.Backend.Controllers
 {
@@ -25,6 +26,7 @@ namespace CMS.Backend.Controllers
 
         // GET: api/menus - Lấy toàn bộ menu đang hiển thị, sắp xếp theo thứ tự
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<MenuOutDTO>), 200)]
         public async Task<IActionResult> GetAll()
         {
             var menus = await _context.Menus

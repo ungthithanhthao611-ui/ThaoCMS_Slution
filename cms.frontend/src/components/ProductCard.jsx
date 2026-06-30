@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { IMAGE_BASE } from '../api/axiosClient';
+import { getCategoryImage } from '../services/categoryProductService';
 
-const ProductCard = ({ item }) => {
+const ProductCard = ({ item, categoryName, categoryImageUrl }) => {
     const { addToCart } = useCart();
     const [added, setAdded] = useState(false);
     const [quantity, setQuantity] = useState(1);
@@ -34,71 +35,69 @@ const ProductCard = ({ item }) => {
     const formatVND = (val) =>
         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
+    // Xử lý ảnh danh mục (nếu có từ admin thì dùng, nếu không thì dùng fallback)
+    const catImageUrl = categoryImageUrl 
+        ? (categoryImageUrl.startsWith('http') ? categoryImageUrl : `${IMAGE_BASE}${categoryImageUrl.startsWith('/') ? '' : '/'}${categoryImageUrl}`)
+        : getCategoryImage(categoryName || '');
+
     return (
         <div
             className="hc-card text-center"
             style={{
-                borderRadius: '16px',
+                borderRadius: '24px',
                 overflow: 'hidden',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                boxShadow: '0 5px 20px rgba(0,0,0,0.05)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                 background: '#fff',
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                width: '100%'
+                width: '100%',
+                border: '1px solid #f0e6e0'
             }}
             onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.15)';
+                e.currentTarget.style.transform = 'translateY(-8px)';
+                e.currentTarget.style.boxShadow = '0 15px 30px rgba(178,40,48,0.1)';
             }}
             onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)';
+                e.currentTarget.style.boxShadow = '0 5px 20px rgba(0,0,0,0.05)';
             }}
         >
             {/* Ảnh sản phẩm */}
-            <Link to={`/product/${item.id}`}>
+            <Link to={`/product/${item.id}`} style={{ position: 'relative' }}>
                 <div style={{
-                    backgroundColor: '#fafafa',
-                    height: '200px',
+                    backgroundColor: '#fff',
+                    height: '250px',
                     position: 'relative',
                     overflow: 'hidden',
-                    padding: '12px',
-                    borderBottom: '1px solid #f0f0f0'
+                    padding: '0',
                 }}>
                     {/* Badge NEW */}
                     {isNew && !hasSale && (
                         <span style={{
-                            position: 'absolute', top: '10px', left: '10px',
-                            backgroundColor: '#28a745', color: '#fff',
-                            fontSize: '0.7rem', fontWeight: '800',
-                            padding: '4px 8px', borderRadius: '6px',
-                            zIndex: 10, letterSpacing: '0.5px',
-                            boxShadow: '0 2px 6px rgba(40,167,69,0.4)'
+                            position: 'absolute', top: '15px', right: '15px',
+                            backgroundColor: '#ffcc00', color: '#b22830',
+                            fontSize: '0.7rem', fontWeight: '900',
+                            padding: '5px 10px', borderRadius: '10px',
+                            zIndex: 10, letterSpacing: '0.5px'
                         }}>
-                            NEW
+                            MỚI
                         </span>
                     )}
 
                     {/* Badge % giảm giá — hình tròn nổi bật */}
                     {hasSale && (
                         <span style={{
-                            position: 'absolute', top: '8px', right: '8px',
-                            background: 'linear-gradient(135deg, #ff3b30, #c0392b)',
-                            color: '#fff',
-                            width: '48px', height: '48px',
+                            position: 'absolute', top: '12px', right: '12px',
+                            background: '#b22830', color: '#fff',
+                            width: '45px', height: '45px',
                             borderRadius: '50%',
                             display: 'flex', flexDirection: 'column',
                             alignItems: 'center', justifyContent: 'center',
-                            zIndex: 10,
-                            boxShadow: '0 3px 10px rgba(192,57,43,0.5)',
-                            fontWeight: '900',
-                            lineHeight: 1.1,
-                            border: '2px solid rgba(255,255,255,0.3)'
+                            zIndex: 10, fontWeight: '900', lineHeight: 1.1
                         }}>
-                            <span style={{ fontSize: '0.75rem' }}>-{discountPercent}</span>
-                            <span style={{ fontSize: '0.65rem' }}>%</span>
+                            <span style={{ fontSize: '0.8rem' }}>-{discountPercent}%</span>
                         </span>
                     )}
 
@@ -108,10 +107,10 @@ const ProductCard = ({ item }) => {
                             alt={item.name}
                             style={{
                                 width: '100%', height: '100%',
-                                objectFit: 'contain',
+                                objectFit: 'cover',
                                 transition: 'transform 0.4s ease'
                             }}
-                            onMouseEnter={e => e.target.style.transform = 'scale(1.08)'}
+                            onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
                             onMouseLeave={e => e.target.style.transform = 'scale(1)'}
                             onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
                         />
@@ -122,20 +121,17 @@ const ProductCard = ({ item }) => {
             </Link>
 
             {/* Nội dung card */}
-            <div style={{ padding: '14px 14px 16px', display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
-                {/* Phần tên và giá sản phẩm được bọc chung để co giãn đều */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1, justifyContent: 'space-between', marginBottom: '6px' }}>
+            <div style={{ padding: '0 20px 20px 20px', display: 'flex', flexDirection: 'column', gap: '15px', flexGrow: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1, justifyContent: 'space-between' }}>
                     {/* Tên sản phẩm */}
                     <Link to={`/product/${item.id}`} style={{ textDecoration: 'none' }}>
                         <h6 style={{
-                            fontWeight: '700', color: '#222',
-                            fontSize: '0.92rem', margin: 0,
-                            minHeight: '38px',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            lineHeight: '1.4'
+                            fontWeight: '900', color: '#b22830',
+                            fontSize: '1rem', margin: 0,
+                            minHeight: '44px', display: '-webkit-box',
+                            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden', lineHeight: '1.4',
+                            textTransform: 'uppercase'
                         }}>
                             {item.name}
                         </h6>
@@ -143,22 +139,16 @@ const ProductCard = ({ item }) => {
 
                     {/* Giá tiền */}
                     {hasSale ? (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span style={{
-                                fontSize: '1.15rem', fontWeight: '900', color: '#c0392b',
-                                letterSpacing: '-0.3px'
-                            }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#333' }}>
                                 {formatVND(item.salePrice)}
                             </span>
-                            <span style={{
-                                fontSize: '0.8rem', color: '#aaa',
-                                textDecoration: 'line-through'
-                            }}>
+                            <span style={{ fontSize: '0.85rem', color: '#999', textDecoration: 'line-through' }}>
                                 {formatVND(item.price)}
                             </span>
                         </div>
                     ) : (
-                        <p style={{ fontSize: '1.1rem', fontWeight: '800', color: '#b22830', margin: 0 }}>
+                        <p style={{ fontSize: '1.2rem', fontWeight: '900', color: '#333', margin: 0 }}>
                             {formatVND(item.price)}
                         </p>
                     )}
@@ -170,22 +160,10 @@ const ProductCard = ({ item }) => {
                     onClick={handleAddToCart}
                     style={{
                         backgroundColor: added ? '#28a745' : '#b22830',
-                        background: added
-                            ? 'linear-gradient(135deg, #28a745, #20963a)'
-                            : 'linear-gradient(135deg, #c0392b, #962d22)',
-                        transition: 'all 0.3s ease',
-                        borderRadius: '10px',
-                        padding: '10px',
-                        fontWeight: '700',
-                        letterSpacing: '0.5px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        fontSize: '0.88rem',
-                        boxShadow: added
-                            ? '0 4px 12px rgba(40,167,69,0.4)'
-                            : '0 4px 12px rgba(192,57,43,0.35)',
-                        marginTop: 'auto'
+                        color: '#fff', border: 'none',
+                        transition: 'all 0.3s ease', borderRadius: '15px',
+                        padding: '12px', fontWeight: '800', cursor: 'pointer',
+                        fontSize: '0.9rem', textTransform: 'uppercase'
                     }}
                 >
                     {added ? (

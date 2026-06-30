@@ -56,7 +56,7 @@ function BlogDetail() {
         return (
             <div className="container py-5 text-center" style={{ minHeight: '60vh' }}>
                 <div className="spinner-border text-primary" role="status"></div>
-                <p className="text-muted mt-2 font-italic small">ThaiCMS đang mở thư viện cẩm nang thời trang, vui lòng chờ...</p>
+                <p className="text-muted mt-2 font-italic small">ThaoCMS đang mở thư viện cẩm nang thời trang, vui lòng chờ...</p>
             </div>
         );
     }
@@ -105,7 +105,7 @@ function BlogDetail() {
                                 </span>
                                 <span>
                                     <i className="fa fa-user mr-1"></i>
-                                    Tác giả: Biên tập viên ThaiCMS
+                                    Tác giả: Biên tập viên ThaoCMS
                                 </span>
                                 <span>
                                     <i className="fa fa-eye mr-1"></i>

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CMS.Data;
 using CMS.Data.Entities;
+using CMS.Backend.DTOs;
 
 namespace CMS.Backend.Controllers
 {
@@ -25,9 +26,10 @@ namespace CMS.Backend.Controllers
 
         // [BUỔI 6] 1. Chỉ định phương thức GET (Dùng để kéo dữ liệu từ cơ sở dữ liệu)
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<ProductOutDTO>), 200)]
         public async Task<IActionResult> GetAll([FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] string? search = null)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products.Where(p => !p.IsDeleted).AsQueryable();
 
             if (minPrice.HasValue)
             {
@@ -65,6 +67,7 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> GetLatest()
         {
             var products = await _context.Products
+                .Where(p => !p.IsDeleted)
                 .OrderByDescending(p => p.IsNew) // Ưu tiên các sản phẩm được đánh dấu "Mới (New)"
                 .ThenByDescending(p => p.Id)
                 .Take(3)
@@ -88,9 +91,9 @@ namespace CMS.Backend.Controllers
         [HttpGet("sale")]
         public async Task<IActionResult> GetSale()
         {
-            // Ưu tiên lấy sản phẩm được tick Khuyến mãi (IsPromo = true)
-            var products = await _context.Products
-                .Where(p => p.IsPromo == true && p.SalePrice != null && p.SalePrice > 0 && p.SalePrice < p.Price)
+            // 1. Ưu tiên lấy sản phẩm được tick Khuyến mãi (IsPromo = true) có giảm giá
+            var promoProducts = await _context.Products
+                .Where(p => !p.IsDeleted && p.IsPromo == true && p.SalePrice != null && p.SalePrice > 0 && p.SalePrice < p.Price)
                 .OrderByDescending(p => p.Price - p.SalePrice)
                 .Take(3)
                 .Select(p => new {
@@ -106,13 +109,18 @@ namespace CMS.Backend.Controllers
                 })
                 .ToListAsync();
 
-            // Nếu không có sản phẩm nào được tick IsPromo, fallback lấy sản phẩm có SalePrice bất kỳ
-            if (!products.Any())
+            var result = new List<object>(promoProducts);
+
+            // 2. Nếu chưa đủ 3, lấy thêm sản phẩm có giá Sale bất kỳ để bù vào
+            if (result.Count < 3)
             {
-                products = await _context.Products
-                    .Where(p => p.SalePrice != null && p.SalePrice > 0 && p.SalePrice < p.Price)
+                var currentIds = result.Select(p => ((dynamic)p).Id).Cast<int>().ToList();
+                var remainingCount = 3 - result.Count;
+
+                var saleFallback = await _context.Products
+                    .Where(p => !p.IsDeleted && !currentIds.Contains(p.Id) && p.SalePrice != null && p.SalePrice > 0 && p.SalePrice < p.Price)
                     .OrderByDescending(p => p.Price - p.SalePrice)
-                    .Take(3)
+                    .Take(remainingCount)
                     .Select(p => new {
                         p.Id,
                         p.Name,
@@ -125,14 +133,20 @@ namespace CMS.Backend.Controllers
                         p.IsPromo
                     })
                     .ToListAsync();
+
+                result.AddRange(saleFallback);
             }
 
-            // Nếu vẫn chưa có, lấy sản phẩm mới nhất làm fallback
-            if (!products.Any())
+            // 3. Nếu vẫn chưa đủ 3, lấy thêm sản phẩm mới nhất làm fallback cuối cùng
+            if (result.Count < 3)
             {
-                var fallback = await _context.Products
+                var currentIds = result.Select(p => ((dynamic)p).Id).Cast<int>().ToList();
+                var remainingCount = 3 - result.Count;
+
+                var finalFallback = await _context.Products
+                    .Where(p => !p.IsDeleted && !currentIds.Contains(p.Id))
                     .OrderByDescending(p => p.Id)
-                    .Take(3)
+                    .Take(remainingCount)
                     .Select(p => new {
                         p.Id,
                         p.Name,
@@ -145,19 +159,21 @@ namespace CMS.Backend.Controllers
                         p.IsPromo
                     })
                     .ToListAsync();
-                return Ok(fallback);
+
+                result.AddRange(finalFallback);
             }
 
-            return Ok(products);
+            return Ok(result);
         }
 
         // Giữ lại endpoint hot để tương thích ngược
         [HttpGet("hot")]
+        [ProducesResponseType(typeof(IEnumerable<ProductOutDTO>), 200)]
         public async Task<IActionResult> GetHot()
         {
             // Ưu tiên sản phẩm được tick "Bán chạy" (IsBestSeller = true)
             var bestSellerProducts = await _context.Products
-                .Where(p => p.IsBestSeller == true)
+                .Where(p => !p.IsDeleted && p.IsBestSeller == true)
                 .OrderByDescending(p => p.Id)
                 .Take(3)
                 .Select(p => new {
@@ -191,7 +207,7 @@ namespace CMS.Backend.Controllers
             if (hotProductIds.Any())
             {
                 var dbProducts = await _context.Products
-                    .Where(p => hotProductIds.Contains(p.Id) && !excludeIds.Contains(p.Id))
+                    .Where(p => !p.IsDeleted && hotProductIds.Contains(p.Id) && !excludeIds.Contains(p.Id))
                     .Select(p => new {
                         p.Id,
                         p.Name,
@@ -219,7 +235,7 @@ namespace CMS.Backend.Controllers
                 var remainingCount = 3 - productsList.Count;
                 var currentIds = productsList.Select(p => ((dynamic)p).Id).Cast<int>().ToList();
                 var fallbackProducts = await _context.Products
-                    .Where(p => !currentIds.Contains(p.Id))
+                    .Where(p => !p.IsDeleted && !currentIds.Contains(p.Id))
                     .Take(remainingCount)
                     .Select(p => new {
                         p.Id,
@@ -241,11 +257,12 @@ namespace CMS.Backend.Controllers
 
         // [BUỔI 6] 2. Định nghĩa đường dẫn chứa tham số động: api/products/category/{categoryProductId}
         [HttpGet("category/{categoryProductId}")]
+        [ProducesResponseType(typeof(IEnumerable<ProductOutDTO>), 200)]
         public async Task<IActionResult> GetByCategoryProduct(int categoryProductId)
         {
             // Lọc các sản phẩm có CategoryProductId trùng với ID truyền vào từ thanh URL
             var products = await _context.Products
-                .Where(p => p.CategoryProductId == categoryProductId)
+                .Where(p => !p.IsDeleted && p.CategoryProductId == categoryProductId)
                 .Select(p => new {
                     p.Id,
                     p.Name,
@@ -261,11 +278,12 @@ namespace CMS.Backend.Controllers
 
         // [BUỔI 6] 3. Định nghĩa đường dẫn nhận ID trực tiếp: api/products/{id}
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ProductDetailOutDTO), 200)]
         public async Task<IActionResult> GetDetail(int id)
         {
             // 3.1. Quét bảng Products để tìm sản phẩm đầu tiên có Id khớp với tham số
             var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
 
             // 3.2 Xử lý kịch bản lỗi bảo vệ hệ thống: ID không tồn tại trong Database
             if (product == null)

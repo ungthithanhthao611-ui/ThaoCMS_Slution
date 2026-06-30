@@ -7,7 +7,13 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
     const navigate = useNavigate();
+
+    const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(''), 3000);
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -19,10 +25,13 @@ const Login = () => {
             if (res && res.customer) {
                 // Lưu thông tin vào localStorage
                 localStorage.setItem('customer', JSON.stringify(res.customer));
-                alert('Đăng nhập thành công!');
-                navigate('/');
-                // Tải lại trang một chút để Header cập nhật lại state (cách đơn giản nhất)
-                window.location.reload();
+                showToast('Đăng nhập thành công!');
+                
+                // Đợi 1.5 giây để hiện thông báo rồi mới chuyển trang
+                setTimeout(() => {
+                    navigate('/');
+                    window.location.reload();
+                }, 1500);
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi kết nối đến máy chủ.');
@@ -127,6 +136,28 @@ const Login = () => {
                     </div>
                 </form>
             </div>
+
+            {/* TOAST NOTIFICATION */}
+            {toastMessage && (
+                <>
+                    <style>{`
+                        @keyframes fadeInUp {
+                            from { opacity: 0; transform: translate(-50%, 20px); }
+                            to { opacity: 1; transform: translate(-50%, 0); }
+                        }
+                    `}</style>
+                    <div style={{
+                        position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+                        backgroundColor: '#16a34a', color: 'white', padding: '14px 28px',
+                        borderRadius: '30px', boxShadow: '0 10px 25px rgba(22, 163, 74, 0.4)',
+                        zIndex: 10000, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px',
+                        animation: 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                    }}>
+                        <i className="fa fa-check-circle" style={{ fontSize: '1.2rem' }}></i>
+                        {toastMessage}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

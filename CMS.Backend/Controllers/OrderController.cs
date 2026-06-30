@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization; // [BUỔI 5]
 using Microsoft.EntityFrameworkCore; // Hỗ trợ Eager Loading (Include)
+using System.Threading.Tasks;
+using CMS.Backend.Services;
+
+using X.PagedList;
 
 //Controller quản lý đơn hàng
 namespace CMS.Backend.Controllers
@@ -16,32 +20,40 @@ namespace CMS.Backend.Controllers
     public class OrderController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public OrderController(ApplicationDbContext context)
+        public OrderController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         // ==========================================
         // 1. HIỂN THỊ DANH SÁCH ĐƠN HÀNG
         // ==========================================
-        public IActionResult Index()
+        public IActionResult Index(int? page)
         {
+            int pageSize = 5;
+            int pageNumber = page ?? 1;
+
             // Nạp kèm thông tin Khách hàng để hiển thị Tên Khách Hàng thay vì chỉ ID
-            var data = _context.Orders.Include(o => o.Customer).ToList();
+            var data = _context.Orders.Include(o => o.Customer).OrderByDescending(o => o.OrderDate).ToPagedList(pageNumber, pageSize);
             return View(data);
         }
 
         // ==========================================
         // 2. CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (UPDATE STATUS)
         // ==========================================
-        public IActionResult UpdateStatus(int id, int status)
+        public async Task<IActionResult> UpdateStatus(int id, int status)
         {
-            var order = _context.Orders.Find(id);
+            var order = await _context.Orders.Include(o => o.Customer).FirstOrDefaultAsync(o => o.Id == id);
             if (order != null)
             {
                 order.Status = status;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+                
+                // Gửi email thông báo trạng thái
+                await _emailService.SendOrderStatusChangedEmailAsync(order, order.Customer);
             }
             return RedirectToAction("Index");
         }
@@ -64,5 +76,6 @@ namespace CMS.Backend.Controllers
             }
             return RedirectToAction("Index");
         }
+
     }
 }
