@@ -72,8 +72,8 @@
         <h2>BẢNG ĐIỀU KHIỂN CHUNG</h2>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-2 bg-light border rounded-pill shadow-sm" style="background-color: #fdf8f5 !important; border-color: #ebd8c3 !important;">
             <span class="badge rounded-circle p-2" style="background: #8b5a2b; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;"><i class="bi bi-person-fill text-white"></i></span>
-            <span class="fw-semibold" style="color: #4a2c11;">Admin:</span>
-            <span class="fw-bold" style="color: #d4a373;">Thảo_2123110174</span>
+            <span class="fw-semibold" style="color: #4a2c11;">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Admin"):</span>
+            <span class="fw-bold" style="color: #d4a373;">@(User.FindFirst("FullName")?.Value ?? User.Identity.Name)</span>
         </div>
     </div>
 

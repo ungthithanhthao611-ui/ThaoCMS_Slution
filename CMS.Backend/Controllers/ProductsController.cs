@@ -27,7 +27,13 @@ namespace CMS.Backend.Controllers
         // [BUỔI 6] 1. Chỉ định phương thức GET (Dùng để kéo dữ liệu từ cơ sở dữ liệu)
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ProductOutDTO>), 200)]
-        public async Task<IActionResult> GetAll([FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] string? search = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] decimal? minPrice = null, 
+            [FromQuery] decimal? maxPrice = null, 
+            [FromQuery] string? search = null,
+            [FromQuery] bool? isNew = null,
+            [FromQuery] bool? isBestSeller = null,
+            [FromQuery] bool? isPromo = null)
         {
             var query = _context.Products.Where(p => !p.IsDeleted).AsQueryable();
 
@@ -47,6 +53,21 @@ namespace CMS.Backend.Controllers
                 query = query.Where(p => p.Name.ToLower().Contains(lowerSearch) || (p.Description != null && p.Description.ToLower().Contains(lowerSearch)));
             }
 
+            if (isNew.HasValue)
+            {
+                query = query.Where(p => p.IsNew == isNew.Value);
+            }
+
+            if (isBestSeller.HasValue)
+            {
+                query = query.Where(p => p.IsBestSeller == isBestSeller.Value);
+            }
+
+            if (isPromo.HasValue)
+            {
+                query = query.Where(p => p.IsPromo == isPromo.Value);
+            }
+
             var products = await query
                 .OrderByDescending(p => p.Id) // Sắp xếp sản phẩm mới nhất lên đầu
                 .Select(p => new {
@@ -55,7 +76,8 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.SalePrice,
                     p.ImageUrl,
-                    p.StockQuantity
+                    p.StockQuantity,
+                    p.Description
                 })
                 .ToListAsync();
 
@@ -80,7 +102,8 @@ namespace CMS.Backend.Controllers
                     p.StockQuantity,
                     p.IsNew,
                     p.IsBestSeller,
-                    p.IsPromo
+                    p.IsPromo,
+                    p.Description
                 })
                 .ToListAsync();
 
@@ -105,7 +128,8 @@ namespace CMS.Backend.Controllers
                     p.StockQuantity,
                     p.IsNew,
                     p.IsBestSeller,
-                    p.IsPromo
+                    p.IsPromo,
+                    p.Description
                 })
                 .ToListAsync();
 
@@ -130,7 +154,8 @@ namespace CMS.Backend.Controllers
                         p.StockQuantity,
                         p.IsNew,
                         p.IsBestSeller,
-                        p.IsPromo
+                        p.IsPromo,
+                        p.Description
                     })
                     .ToListAsync();
 
@@ -156,7 +181,8 @@ namespace CMS.Backend.Controllers
                         p.StockQuantity,
                         p.IsNew,
                         p.IsBestSeller,
-                        p.IsPromo
+                        p.IsPromo,
+                        p.Description
                     })
                     .ToListAsync();
 
@@ -185,7 +211,8 @@ namespace CMS.Backend.Controllers
                     p.StockQuantity,
                     p.IsNew,
                     p.IsBestSeller,
-                    p.IsPromo
+                    p.IsPromo,
+                    p.Description
                 })
                 .ToListAsync();
 
@@ -217,7 +244,8 @@ namespace CMS.Backend.Controllers
                         p.StockQuantity,
                         p.IsNew,
                         p.IsBestSeller,
-                        p.IsPromo
+                        p.IsPromo,
+                        p.Description
                     })
                     .ToListAsync();
                 
@@ -246,7 +274,8 @@ namespace CMS.Backend.Controllers
                         p.StockQuantity,
                         p.IsNew,
                         p.IsBestSeller,
-                        p.IsPromo
+                        p.IsPromo,
+                        p.Description
                     })
                     .ToListAsync();
                 productsList.AddRange(fallbackProducts);
@@ -269,7 +298,8 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.SalePrice,
                     p.ImageUrl,
-                    p.StockQuantity
+                    p.StockQuantity,
+                    p.Description
                 })
                 .ToListAsync();
 

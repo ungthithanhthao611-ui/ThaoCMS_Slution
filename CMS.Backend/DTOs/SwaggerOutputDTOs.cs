@@ -17,6 +17,12 @@ namespace CMS.Backend.DTOs
         public decimal? SalePrice { get; set; }
         public string ImageUrl { get; set; }
         public int StockQuantity { get; set; }
+        public string Description { get; set; }
+        public bool IsNew { get; set; }
+        public bool IsBestSeller { get; set; }
+        public bool IsPromo { get; set; }
+        public int? CategoryProductId { get; set; }
+        public decimal? PriceSizeM { get; set; }
     }
 
     public class ProductDetailOutDTO : ProductOutDTO

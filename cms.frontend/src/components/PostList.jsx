@@ -85,29 +85,50 @@ const PostList = () => {
 
             {/* Điều khiển phân trang */}
             {totalPages > 1 && (
-                <div className="d-flex justify-content-center mt-4 mb-4 col-12">
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '30px', marginBottom: '10px' }}>
                     <nav aria-label="Page navigation">
-                        <ul className="pagination" style={{ gap: '5px' }}>
+                        <ul className="pagination" style={{ display: 'flex', gap: '8px', listStyle: 'none', padding: 0, margin: 0, alignItems: 'center' }}>
                             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                <button className="page-link" onClick={() => handlePageChange(currentPage - 1)} style={{ borderRadius: '5px', color: '#b22830' }}>
+                                <button 
+                                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)} 
+                                    style={currentPage === 1 ? {
+                                        border: 'none', background: '#f5f5f5', color: '#ccc', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', cursor: 'not-allowed'
+                                    } : {
+                                        border: 'none', background: '#faf6f2', color: '#53382c', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
                                     &laquo; Trước
                                 </button>
                             </li>
                             
-                            {[...Array(totalPages)].map((_, index) => (
-                                <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                                    <button 
-                                        className="page-link" 
-                                        onClick={() => handlePageChange(index + 1)}
-                                        style={currentPage === index + 1 ? { backgroundColor: '#b22830', borderColor: '#b22830', borderRadius: '5px' } : { borderRadius: '5px', color: '#b22830' }}
-                                    >
-                                        {index + 1}
-                                    </button>
-                                </li>
-                            ))}
+                            {[...Array(totalPages)].map((_, index) => {
+                                const pageNum = index + 1;
+                                const isActive = currentPage === pageNum;
+                                return (
+                                    <li key={pageNum} className={`page-item ${isActive ? 'active' : ''}`}>
+                                        <button 
+                                            onClick={() => handlePageChange(pageNum)}
+                                            style={isActive ? {
+                                                border: 'none', background: '#b22830', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '800', cursor: 'pointer', minWidth: '32px', boxShadow: '0 4px 10px rgba(178,40,48,0.2)'
+                                            } : {
+                                                border: 'none', background: '#faf6f2', color: '#53382c', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', minWidth: '32px', transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    </li>
+                                );
+                            })}
 
                             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                                <button className="page-link" onClick={() => handlePageChange(currentPage + 1)} style={{ borderRadius: '5px', color: '#b22830' }}>
+                                <button 
+                                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)} 
+                                    style={currentPage === totalPages ? {
+                                        border: 'none', background: '#f5f5f5', color: '#ccc', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', cursor: 'not-allowed'
+                                    } : {
+                                        border: 'none', background: '#faf6f2', color: '#53382c', padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
                                     Sau &raquo;
                                 </button>
                             </li>

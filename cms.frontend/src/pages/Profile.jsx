@@ -5,6 +5,7 @@ import reviewService from '../services/reviewService';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { IMAGE_BASE, API_BASE } from '../api/axiosClient';
+import { useCart } from '../context/CartContext';
 
 const STATUS_MAP = {
     0: { label: 'Chờ xử lý', color: '#d97706', bg: '#fef3c7', icon: 'fa fa-clock-o' },
@@ -14,6 +15,7 @@ const STATUS_MAP = {
 };
 
 const Profile = () => {
+    const { addToCart, clearCart } = useCart();
     const [customer, setCustomer] = useState(null);
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
@@ -110,6 +112,45 @@ const Profile = () => {
             localStorage.removeItem('customer');
             navigate('/');
             window.location.reload();
+        }
+    };
+
+    const handleReorderRemaining = async (order) => {
+        try {
+            await fetch(`${API_BASE}/api/Orders/Acknowledge/${order.id}`, { method: 'PUT' });
+        } catch (e) {
+            console.error("Lỗi xác nhận đơn cũ:", e);
+        }
+        clearCart();
+        if (order.items && order.items.length > 0) {
+            order.items.forEach(item => {
+                const product = {
+                    id: item.productId,
+                    name: item.productName,
+                    imageUrl: item.productImageUrl,
+                    price: item.unitPrice,
+                };
+                addToCart(product, item.quantity, item.size || 'S');
+            });
+        }
+        navigate('/cart');
+    };
+
+    const handleAcknowledgeOrder = async (orderId) => {
+        try {
+            const response = await fetch(`${API_BASE}/api/Orders/Acknowledge/${orderId}`, {
+                method: 'PUT'
+            });
+            if (response.ok) {
+                showToast('Đã xác nhận tiếp tục nhận các món còn lại!');
+                const data = await orderService.getOrdersByCustomer(customer.id);
+                setOrders(Array.isArray(data) ? data : []);
+            } else {
+                showToast('Không thể xác nhận lúc này.');
+            }
+        } catch (err) {
+            console.error("Lỗi xác nhận đơn:", err);
+            showToast('Lỗi kết nối máy chủ.');
         }
     };
 
@@ -437,7 +478,47 @@ const Profile = () => {
                                                 </div>
                                                 <div style={{ borderTop: '1px solid #fed7d7', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                                                     <span style={{ fontSize: '0.9rem', color: '#742a2a', fontWeight: '600' }}>Bạn có muốn tiếp tục nhận các món còn lại trong đơn hàng này không?</span>
-                                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                                        <button
+                                                             onClick={() => handleReorderRemaining(affectedOrder)}
+                                                             style={{ 
+                                                                 border: 'none',
+                                                                 padding: '8px 20px', 
+                                                                 background: 'linear-gradient(135deg, #28a745, #1e7e34)', 
+                                                                 color: 'white', 
+                                                                 borderRadius: '8px', 
+                                                                 fontSize: '0.9rem', 
+                                                                 fontWeight: 'bold', 
+                                                                 cursor: 'pointer', 
+                                                                 boxShadow: '0 4px 10px rgba(40,167,69,0.2)', 
+                                                                 transition: 'all 0.2s',
+                                                                 display: 'inline-flex',
+                                                                 alignItems: 'center',
+                                                                 justifyContent: 'center'
+                                                             }}
+                                                         >
+                                                             Tiếp tục mua / Đổi món
+                                                         </button>
+                                                         <button
+                                                             onClick={() => handleAcknowledgeOrder(affectedOrder.id)}
+                                                             style={{ 
+                                                                 border: 'none',
+                                                                 padding: '8px 20px', 
+                                                                 background: 'linear-gradient(135deg, #3182ce, #2b6cb0)', 
+                                                                 color: 'white', 
+                                                                 borderRadius: '8px', 
+                                                                 fontSize: '0.9rem', 
+                                                                 fontWeight: 'bold', 
+                                                                 cursor: 'pointer', 
+                                                                 boxShadow: '0 4px 10px rgba(49,130,206,0.2)', 
+                                                                 transition: 'all 0.2s',
+                                                                 display: 'inline-flex',
+                                                                 alignItems: 'center',
+                                                                 justifyContent: 'center'
+                                                             }}
+                                                         >
+                                                             Đồng ý nhận món còn lại
+                                                         </button>
                                                         <button
                                                             onClick={() => { setActiveTab('orders'); setExpandedOrder(affectedOrder.id); }}
                                                             style={{ padding: '8px 20px', background: 'white', color: '#b22830', border: '1px solid #b22830', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>

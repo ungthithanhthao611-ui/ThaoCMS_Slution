@@ -40,6 +40,14 @@ namespace CMS.Backend.Controllers
 
             if (user == null)
             {
+                // Kiểm tra xem đây có phải tài khoản Khách hàng (bảng Customers) hay không
+                var isCustomer = _context.Customers.Any(c => c.Email == username);
+                if (isCustomer)
+                {
+                    ViewBag.Error = "Tài khoản của bạn là Khách hàng, không được phép truy cập vào trang quản trị!";
+                    return View();
+                }
+
                 ViewBag.Error = "Tên đăng nhập hoặc mật khẩu không đúng!";
                 return View();
             }

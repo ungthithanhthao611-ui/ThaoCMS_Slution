@@ -4,6 +4,12 @@ import { useCart } from '../context/CartContext';
 import { IMAGE_BASE } from '../api/axiosClient';
 import { getCategoryImage } from '../services/categoryProductService';
 
+// Hàm loại bỏ thẻ HTML để trích xuất text thuần
+const stripHtml = (html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>?/gm, '');
+};
+
 const ProductCard = ({ item, categoryName, categoryImageUrl }) => {
     const { addToCart } = useCart();
     const [added, setAdded] = useState(false);
@@ -27,7 +33,6 @@ const ProductCard = ({ item, categoryName, categoryImageUrl }) => {
     const isNew = item.isNew !== undefined ? item.isNew : (item.id % 3 === 0);
     const hasSale = item.salePrice && item.salePrice > 0 && item.salePrice < item.price;
 
-    // Tính % giảm giá
     const discountPercent = hasSale
         ? Math.round(((item.price - item.salePrice) / item.price) * 100)
         : 0;
@@ -35,69 +40,82 @@ const ProductCard = ({ item, categoryName, categoryImageUrl }) => {
     const formatVND = (val) =>
         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
-    // Xử lý ảnh danh mục (nếu có từ admin thì dùng, nếu không thì dùng fallback)
     const catImageUrl = categoryImageUrl 
         ? (categoryImageUrl.startsWith('http') ? categoryImageUrl : `${IMAGE_BASE}${categoryImageUrl.startsWith('/') ? '' : '/'}${categoryImageUrl}`)
         : getCategoryImage(categoryName || '');
 
+    // Trích xuất mô tả ngắn
+    const rawDescription = stripHtml(item.description);
+    const shortDesc = rawDescription
+        ? (rawDescription.length > 70 ? rawDescription.substring(0, 70) + '...' : rawDescription)
+        : 'Thưởng thức hương vị thơm ngon tuyệt hảo được pha chế từ nguyên liệu sạch tại Highlands.';
+
     return (
         <div
-            className="hc-card text-center"
+            className="hc-card-horizontal"
             style={{
-                borderRadius: '24px',
+                borderRadius: '20px',
                 overflow: 'hidden',
-                boxShadow: '0 5px 20px rgba(0,0,0,0.05)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                background: '#fff',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
+                boxShadow: '0 6px 18px rgba(83, 56, 44, 0.05)',
+                transition: 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)',
+                background: '#ffffff',
                 width: '100%',
-                border: '1px solid #f0e6e0'
+                border: '1px solid rgba(83, 56, 44, 0.06)',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: '18px',
+                gap: '20px',
+                boxSizing: 'border-box'
             }}
             onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 15px 30px rgba(178,40,48,0.1)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 12px 25px rgba(83, 56, 44, 0.12)';
+                e.currentTarget.style.borderColor = 'rgba(178, 40, 48, 0.25)';
             }}
             onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 5px 20px rgba(0,0,0,0.05)';
+                e.currentTarget.style.boxShadow = '0 6px 18px rgba(83, 56, 44, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(83, 56, 44, 0.06)';
             }}
         >
-            {/* Ảnh sản phẩm */}
-            <Link to={`/product/${item.id}`} style={{ position: 'relative' }}>
+            {/* Ảnh bên trái */}
+            <Link to={`/product/${item.id}`} style={{ position: 'relative', display: 'block', flexShrink: 0 }}>
                 <div style={{
-                    backgroundColor: '#fff',
-                    height: '250px',
+                    backgroundColor: '#faf6f2',
+                    width: '140px',
+                    height: '140px',
                     position: 'relative',
                     overflow: 'hidden',
-                    padding: '0',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: 'inset 0 0 10px rgba(83, 56, 44, 0.03)'
                 }}>
                     {/* Badge NEW */}
                     {isNew && !hasSale && (
                         <span style={{
-                            position: 'absolute', top: '15px', right: '15px',
-                            backgroundColor: '#ffcc00', color: '#b22830',
-                            fontSize: '0.7rem', fontWeight: '900',
-                            padding: '5px 10px', borderRadius: '10px',
+                            position: 'absolute', top: '8px', left: '8px',
+                            background: 'linear-gradient(135deg, #28a745, #1e7e34)', color: '#fff',
+                            fontSize: '0.6rem', fontWeight: '800',
+                            padding: '3px 8px', borderRadius: '12px',
                             zIndex: 10, letterSpacing: '0.5px'
                         }}>
                             MỚI
                         </span>
                     )}
 
-                    {/* Badge % giảm giá — hình tròn nổi bật */}
+                    {/* Badge Sale */}
                     {hasSale && (
                         <span style={{
-                            position: 'absolute', top: '12px', right: '12px',
+                            position: 'absolute', top: '8px', right: '8px',
                             background: '#b22830', color: '#fff',
-                            width: '45px', height: '45px',
-                            borderRadius: '50%',
-                            display: 'flex', flexDirection: 'column',
-                            alignItems: 'center', justifyContent: 'center',
-                            zIndex: 10, fontWeight: '900', lineHeight: 1.1
+                            fontSize: '0.6rem', fontWeight: '900',
+                            padding: '3px 8px', borderRadius: '12px',
+                            zIndex: 10
                         }}>
-                            <span style={{ fontSize: '0.8rem' }}>-{discountPercent}%</span>
+                            -{discountPercent}%
                         </span>
                     )}
 
@@ -108,70 +126,133 @@ const ProductCard = ({ item, categoryName, categoryImageUrl }) => {
                             style={{
                                 width: '100%', height: '100%',
                                 objectFit: 'cover',
-                                transition: 'transform 0.4s ease'
+                                transition: 'transform 0.4s ease-out'
                             }}
-                            onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+                            onMouseEnter={e => e.target.style.transform = 'scale(1.08)'}
                             onMouseLeave={e => e.target.style.transform = 'scale(1)'}
                             onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
                         />
                     ) : (
-                        <i className="fa fa-coffee" style={{ fontSize: '5rem', color: '#ccc', lineHeight: '200px' }}></i>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#c0a080' }}>
+                            <i className="fa fa-coffee" style={{ fontSize: '2.5rem' }}></i>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 'bold', opacity: 0.7 }}>Thao Coffee</span>
+                        </div>
                     )}
                 </div>
             </Link>
 
-            {/* Nội dung card */}
-            <div style={{ padding: '0 20px 20px 20px', display: 'flex', flexDirection: 'column', gap: '15px', flexGrow: 1 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1, justifyContent: 'space-between' }}>
+            {/* Chi tiết bên phải */}
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, minHeight: '140px', textAlign: 'left', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {/* Hàng nhãn danh mục & Sao đánh giá */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '5px' }}>
+                        {categoryName && (
+                            <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                {categoryName}
+                            </span>
+                        )}
+                        
+                        {/* Rating Stars Mockup */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '0.75rem', color: '#f5b041' }}>
+                            <i className="fa fa-star"></i>
+                            <i className="fa fa-star"></i>
+                            <i className="fa fa-star"></i>
+                            <i className="fa fa-star"></i>
+                            <i className="fa fa-star"></i>
+                            <span style={{ color: '#718096', marginLeft: '3px', fontWeight: 'bold' }}>5.0</span>
+                        </div>
+                    </div>
+                    
                     {/* Tên sản phẩm */}
-                    <Link to={`/product/${item.id}`} style={{ textDecoration: 'none' }}>
+                    <Link to={`/product/${item.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                         <h6 style={{
-                            fontWeight: '900', color: '#b22830',
-                            fontSize: '1rem', margin: 0,
-                            minHeight: '44px', display: '-webkit-box',
-                            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden', lineHeight: '1.4',
-                            textTransform: 'uppercase'
-                        }}>
-                            {item.name}
+                            fontWeight: '800', color: '#53382c',
+                            fontSize: '1.05rem', margin: 0,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1, WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden', lineHeight: '1.3',
+                            transition: 'color 0.2s',
+                            textTransform: 'capitalize'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#b22830'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#53382c'}
+                        >
+                            {item.name.toLowerCase()}
                         </h6>
                     </Link>
 
-                    {/* Giá tiền */}
-                    {hasSale ? (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#333' }}>
-                                {formatVND(item.salePrice)}
-                            </span>
-                            <span style={{ fontSize: '0.85rem', color: '#999', textDecoration: 'line-through' }}>
-                                {formatVND(item.price)}
-                            </span>
-                        </div>
-                    ) : (
-                        <p style={{ fontSize: '1.2rem', fontWeight: '900', color: '#333', margin: 0 }}>
-                            {formatVND(item.price)}
-                        </p>
-                    )}
+                    {/* Mô tả ngắn của sản phẩm */}
+                    <p style={{
+                        fontSize: '0.82rem',
+                        color: '#718096',
+                        margin: '2px 0 0 0',
+                        lineHeight: '1.4',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        minHeight: '36px'
+                    }}>
+                        {shortDesc}
+                    </p>
                 </div>
 
-                {/* Nút thêm vào giỏ */}
-                <button
-                    className="hc-btn-primary w-100"
-                    onClick={handleAddToCart}
-                    style={{
-                        backgroundColor: added ? '#28a745' : '#b22830',
-                        color: '#fff', border: 'none',
-                        transition: 'all 0.3s ease', borderRadius: '15px',
-                        padding: '12px', fontWeight: '800', cursor: 'pointer',
-                        fontSize: '0.9rem', textTransform: 'uppercase'
-                    }}
-                >
-                    {added ? (
-                        <><i className="fa fa-check" style={{ marginRight: '6px' }}></i>Đã thêm {quantity}!</>
-                    ) : (
-                        <><i className="fa fa-shopping-cart" style={{ marginRight: '6px' }}></i>Thêm vào giỏ</>
-                    )}
-                </button>
+                {/* Phần giá & nút thêm giỏ chung hàng */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: '10px' }}>
+                    {/* Giá tiền */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                        {hasSale ? (
+                            <>
+                                <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#b22830' }}>
+                                    {formatVND(item.salePrice)}
+                                </span>
+                                <span style={{ fontSize: '0.8rem', color: '#a0aec0', textDecoration: 'line-through', fontWeight: '500' }}>
+                                    {formatVND(item.price)}
+                                </span>
+                            </>
+                        ) : (
+                            <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#b22830' }}>
+                                {formatVND(item.price)}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Nút thêm vào giỏ */}
+                    <button
+                        className="hc-btn-primary"
+                        onClick={handleAddToCart}
+                        style={{
+                            background: added 
+                                ? 'linear-gradient(135deg, #28a745, #218838)' 
+                                : 'linear-gradient(135deg, #b22830, #961e24)',
+                            color: '#fff', border: 'none',
+                            transition: 'all 0.3s ease', 
+                            borderRadius: '12px',
+                            padding: '10px 18px', 
+                            fontWeight: '800', 
+                            cursor: 'pointer',
+                            fontSize: '0.8rem', 
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: added ? '0 4px 10px rgba(40,167,69,0.15)' : '0 4px 10px rgba(178,40,48,0.12)'
+                        }}
+                        onMouseEnter={e => {
+                            if (!added) e.currentTarget.style.filter = 'brightness(1.15)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.filter = 'none';
+                        }}
+                    >
+                        {added ? (
+                            <><i className="fa fa-check"></i>Đã thêm</>
+                        ) : (
+                            <><i className="fa fa-shopping-cart"></i>Mua</>
+                        )}
+                    </button>
+                </div>
             </div>
         </div>
     );

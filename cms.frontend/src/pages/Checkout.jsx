@@ -135,7 +135,13 @@ const Checkout = () => {
     };
 
     const isFormValid = () => {
-        return selectedDistrictId && selectedWardCode && streetAddress.trim();
+        return selectedDistrictId && 
+               selectedWardCode && 
+               streetAddress.trim() && 
+               customer.fullName && 
+               customer.fullName.trim() !== '' && 
+               customer.phone && 
+               customer.phone.trim() !== '';
     };
 
     const handlePlaceOrder = async () => {
