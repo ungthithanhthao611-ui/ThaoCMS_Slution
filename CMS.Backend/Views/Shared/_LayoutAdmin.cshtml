@@ -19,11 +19,14 @@
         }
         /* Premium Sidebar - Coffee Theme */
         .sidebar { 
-            min-height: 100vh; 
+            height: 100vh; 
+            position: sticky;
+            top: 0;
             background: linear-gradient(180deg, #603813 0%, #3a200a 100%);
             box-shadow: 4px 0 25px rgba(0,0,0,0.15);
-            position: relative;
             z-index: 10;
+            overflow-y: auto;
+            scrollbar-width: thin;
         }
         .sidebar-brand {
             padding: 25px 20px;

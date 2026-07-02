@@ -128,7 +128,7 @@ const ProductGrid = () => {
                     </div>
                     <div className={`scroll-grid ${latestVisible ? 'active' : ''}`} style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
                         gap: '20px'
                     }}>
                         {latestProducts.map(item => (
@@ -147,7 +147,7 @@ const ProductGrid = () => {
                     </div>
                     <div className={`scroll-grid ${saleVisible ? 'active' : ''}`} style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
                         gap: '20px'
                     }}>
                         {saleProducts.map(item => (

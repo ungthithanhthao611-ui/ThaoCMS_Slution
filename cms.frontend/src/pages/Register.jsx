@@ -41,8 +41,19 @@ const Register = () => {
 
         try {
             await authService.register(formData);
-            alert('Đăng ký thành công! Vui lòng đăng nhập.');
-            navigate('/login');
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'success',
+                    title: 'Đăng ký thành công!',
+                    text: 'Vui lòng đăng nhập để tiếp tục mua sắm.',
+                    confirmButtonColor: '#b22830'
+                }).then(() => {
+                    navigate('/login');
+                });
+            } else {
+                alert('Đăng ký thành công! Vui lòng đăng nhập.');
+                navigate('/login');
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi kết nối đến máy chủ.');
         } finally {

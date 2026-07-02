@@ -205,3 +205,28 @@ Hệ thống quản lý thông tin thông suốt thông qua 12 bảng dữ liệ
    npm start
    ```
 4. Ứng dụng sẽ tự động mở tab trình duyệt tại địa chỉ [http://localhost:3000](http://localhost:3000) và đồng bộ dữ liệu API mượt mà.
+
+---
+
+## 🌟 6. DANH SÁCH CÁC TÍNH NĂNG NÂNG CẤP & CẢI TIẾN THÊM (ĐỂ GIÁO VIÊN CHẤM ĐIỂM)
+
+Để nâng cao chất lượng đồ án và tối ưu hóa trải nghiệm người dùng thực tế, hệ thống đã được lập trình nâng cấp thêm các tính năng chuyên sâu sau:
+
+### 1. Tối ưu hóa UI/UX & Tái thiết kế Giao diện Khách hàng
+*   **Thẻ sản phẩm Dàn ngang (Horizontal Card):** Tái thiết kế toàn bộ danh sách sản phẩm từ dạng dọc truyền thống sang dạng ngang giống thực đơn gọi món Highlands chuyên nghiệp. Hiển thị mô tả thật lấy trực tiếp từ Database (đã lọc sạch thẻ HTML) kết hợp đánh giá 5 sao.
+*   **Độ rộng Lưới thông minh:** Nâng cấu trúc lưới (`grid-template-columns`) lên tối thiểu `350px` giúp các sản phẩm dàn ngang hiển thị thoáng mát, không bị chèn ép hoặc vỡ chữ trên mọi kích thước màn hình.
+*   **Cụm phân trang (Pagination) Cao cấp:** Cải tiến thanh phân trang của Danh sách sản phẩm và Tin tức thành dạng nút bo tròn (Pill-shaped) Highlands sữa nhã nhặn, tự động căn giữa tuyệt đối bằng CSS Flexbox và khóa nút bấm khi hết trang.
+*   **Thông báo Popup SweetAlert2:** Tích hợp SweetAlert2 thay thế hoàn toàn các hộp thoại cảnh báo `alert()` thô sơ của trình duyệt ở các khu vực Đăng ký thành công, Cảnh báo số lượng vượt kho, và Hủy đơn hàng.
+
+### 2. Nghiệp vụ Xử lý Sự cố & Hoàn đơn Thông minh (Advanced Cart Recovery)
+*   **Xử lý Hủy món một phần:** Cho phép Admin hủy một món ăn bị hết nguyên liệu trong đơn hàng của khách. Hệ thống tự động ghi nhật ký hệ thống `[HỆ THỐNG]` và gửi email thông báo hủy món.
+*   **API Xác nhận từ Khách hàng:** Viết API `PUT api/Orders/Acknowledge/{id}` để khách hàng xác nhận đã đọc thông báo sự cố, giúp tự động ẩn các banner cảnh báo lỗi khỏi hộp thư thông báo ở trang Profile.
+*   **Tự động Phục hồi Giỏ hàng còn lại (Reorder Remaining):** Khi khách hàng bấm nút **"Tiếp tục mua / Đổi món"** từ thông báo sự cố, hệ thống sẽ tự động dọn sạch giỏ hàng hiện tại và nạp lại toàn bộ các sản phẩm còn lại (hợp lệ) của đơn hàng đó vào giỏ hàng với đúng số lượng và kích cỡ để khách hàng mua bù món khác mà không phải chọn lại từ đầu.
+
+### 3. Đồng bộ hóa và Nâng cấp Swagger API Document
+*   **Đồng bộ DTO phản hồi:** Cập nhật lại cấu trúc `ProductOutDTO` ở Backend giúp Swagger hiển thị đầy đủ 12 trường dữ liệu thực tế (bao gồm: `description`, `isNew`, `isBestSeller`, `isPromo`, `categoryProductId`, `priceSizeM`) thay vì chỉ hiển thị các trường cơ bản.
+*   **Tham số lọc trạng thái Boolean:** Bổ sung 3 bộ lọc trạng thái `isNew`, `isBestSeller`, `isPromo` vào Swagger API và xử lý truy vấn logic LINQ tương ứng giúp giáo viên dễ dàng kiểm thử lọc sản phẩm trực tiếp từ Swagger UI.
+
+### 4. Nâng cấp Bảo mật & Quản lý Admin Panel
+*   **Chặn đăng nhập chéo:** Cải tiến logic đăng nhập của trang Admin (`AccountController`). Khi tài khoản khách hàng (`Customers`) cố tình đăng nhập vào trang quản trị Admin, hệ thống sẽ kiểm tra chéo cơ sở dữ liệu và hiển thị cảnh báo chi tiết: *"Tài khoản của bạn là Khách hàng, không được phép truy cập vào trang quản trị!"*.
+*   **Bảo vệ Dashboard & Cố định Sidebar:** Bổ sung bộ lọc bảo mật `[Authorize]` lên trang chủ Admin (`HomeController`) và thiết kế lại CSS Sidebar dạng cuộn cố định (`sticky` và `overflow-y: auto`). Điều này giúp thông tin tài khoản đang đăng nhập và nút **Đăng xuất (Logout)** luôn luôn hiển thị trực quan ở góc dưới cùng bên trái màn hình.

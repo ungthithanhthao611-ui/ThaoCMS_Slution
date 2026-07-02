@@ -207,6 +207,28 @@ namespace CMS.Backend.Controllers
             await _context.SaveChangesAsync();
             return Ok(new { message = "Đã hủy đơn hàng thành công." });
         }
+
+        /// <summary>
+        /// API: Khách hàng xác nhận đồng ý nhận các món còn lại sau khi có sự cố hủy món
+        /// Đường dẫn: PUT api/Orders/Acknowledge/{id}
+        /// </summary>
+        [HttpPut("Acknowledge/{id}")]
+        public async Task<IActionResult> AcknowledgeOrderChanges(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound(new { message = "Không tìm thấy đơn hàng." });
+            }
+
+            if (order.Notes != null && order.Notes.Contains("[HỆ THỐNG]"))
+            {
+                order.Notes = order.Notes.Replace("[HỆ THỐNG]", "[ĐÃ XÁC NHẬN]");
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new { message = "Đã xác nhận đồng ý nhận các món còn lại." });
+        }
     }
 
     // [BUỔI 6] LỚP DTO TRUNG GIAN ĐỂ HỨNG DỮ LIỆU TỪ FRONTEND TRUYỀN LÊN

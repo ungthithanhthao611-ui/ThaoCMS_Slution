@@ -53,11 +53,29 @@ const ProductDetail = () => {
     const handleAddToCart = () => {
         const q = parseInt(quantity);
         if (isNaN(q) || q < 1) {
-            alert("Vui lòng nhập số lượng hợp lệ!");
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'warning',
+                    title: 'Lỗi số lượng',
+                    text: 'Vui lòng nhập số lượng hợp lệ!',
+                    confirmButtonColor: '#b22830'
+                });
+            } else {
+                alert("Vui lòng nhập số lượng hợp lệ!");
+            }
             return;
         }
         if (q > product.stockQuantity) {
-            alert(`Không thể thêm vào giỏ hàng vì vượt quá số lượng trong kho (Còn lại ${product.stockQuantity} sản phẩm)!`);
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'error',
+                    title: 'Không đủ hàng',
+                    text: `Không thể thêm vào giỏ hàng vì vượt quá số lượng trong kho (Còn lại ${product.stockQuantity} sản phẩm)!`,
+                    confirmButtonColor: '#b22830'
+                });
+            } else {
+                alert(`Không thể thêm vào giỏ hàng vì vượt quá số lượng trong kho (Còn lại ${product.stockQuantity} sản phẩm)!`);
+            }
             return;
         }
         addToCart(product, q, selectedSize);
@@ -326,7 +344,16 @@ const ProductDetail = () => {
                                             } else if (val < 1) {
                                                 setQuantity(1);
                                             } else if (val > product.stockQuantity) {
-                                                alert(`Số lượng trong kho không đủ! Chỉ còn lại ${product.stockQuantity} sản phẩm.`);
+                                                if (window.Swal) {
+                                                    window.Swal.fire({
+                                                        icon: 'warning',
+                                                        title: 'Không đủ số lượng',
+                                                        text: `Số lượng trong kho không đủ! Chỉ còn lại ${product.stockQuantity} sản phẩm.`,
+                                                        confirmButtonColor: '#b22830'
+                                                    });
+                                                } else {
+                                                    alert(`Số lượng trong kho không đủ! Chỉ còn lại ${product.stockQuantity} sản phẩm.`);
+                                                }
                                                 setQuantity(product.stockQuantity);
                                             } else {
                                                 setQuantity(val);
@@ -347,7 +374,16 @@ const ProductDetail = () => {
                                     <button
                                         onClick={() => {
                                             if (Number(quantity || 0) >= product.stockQuantity) {
-                                                alert(`Số lượng trong kho không đủ! Chỉ còn lại ${product.stockQuantity} sản phẩm.`);
+                                                if (window.Swal) {
+                                                    window.Swal.fire({
+                                                        icon: 'warning',
+                                                        title: 'Không đủ số lượng',
+                                                        text: `Số lượng trong kho không đủ! Chỉ còn lại ${product.stockQuantity} sản phẩm.`,
+                                                        confirmButtonColor: '#b22830'
+                                                    });
+                                                } else {
+                                                    alert(`Số lượng trong kho không đủ! Chỉ còn lại ${product.stockQuantity} sản phẩm.`);
+                                                }
                                             } else {
                                                 setQuantity(q => Number(q || 0) + 1);
                                             }
@@ -420,7 +456,7 @@ const ProductDetail = () => {
                             </h3>
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
                                 gap: '30px',
                                 marginTop: '10px'
                             }}>
